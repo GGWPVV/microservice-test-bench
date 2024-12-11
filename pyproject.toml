@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "datapipelineexperiments"
+version = "0.1.0"
+description = ""
+authors = ["Sergii Pogorielov"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
