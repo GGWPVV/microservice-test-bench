@@ -5,9 +5,17 @@ description = ""
 authors = ["Sergii Pogorielov"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
+packages = [
+    {include = "back_python/vujs",from = "bases"},
+    {include = "back_python/data_api",from = "bases"},
+    {include = "back_python/observability",from = "components"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.13"
+kombu = "^5.4.2"
+fastapi = "^0.115.6"
 
 
 [build-system]
