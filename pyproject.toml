@@ -7,7 +7,6 @@ license = "MIT"
 readme = "README.md"
 package-mode = false
 packages = [
-    {include = "back_python/vujs",from = "bases"},
     {include = "back_python/data_api",from = "bases"},
     {include = "back_python/observability",from = "components"},
 ]
