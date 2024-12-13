@@ -1,4 +1,4 @@
-from back_python.vujs import core
+from front_vuejs.vujs import core
 
 
 def test_sample():
