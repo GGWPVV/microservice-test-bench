@@ -15,6 +15,7 @@ packages = [
 python = "^3.13"
 kombu = "^5.4.2"
 fastapi = "^0.115.6"
+faststream = "^0.5.33"
 
 
 [build-system]
