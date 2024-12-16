@@ -3,7 +3,7 @@ import sys
 import subprocess
 import shutil
 
-CONFIG_FILE = "k3d_cluster_config.yml"  # Path to the k3d configuration file
+CONFIG_FILE = "k3d-default.yaml"  # Path to the k3d configuration file
 
 
 def get_container_engine():
