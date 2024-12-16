@@ -1,0 +1,22 @@
+apiVersion: k3d.io/v1alpha4
+kind: Simple
+metadata:
+  name: lde-cluster
+servers: 1
+agents: 2
+ports:
+  - port: 8080:80  # Maps port 80 in the cluster to 8080 on the host
+  - port: 8443:443  # Maps port 443 in the cluster to 8443 on the host
+volumes:
+  - type: volume
+    source: my-local-volume
+    target: /data
+options:
+  k3s:
+    extraArgs:
+      - arg: "--disable=servicelb"  # Example for disabling a built-in component
+        nodeFilters:
+          - server:*
+runtime:
+  labels:
+    mylabel: myvalue
