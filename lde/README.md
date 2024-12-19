@@ -53,7 +53,15 @@ To stop and delete the cluster:
 ```bash
 python manage_k3d_cluster.py stop
 ```
+### Listing Clusters
 
+To list all existing clusters:
+```bash
+python manage_k3d_cluster.py list
+```
+This command will display the names and details of all k3d clusters currently available on the system.
+
+### Configuration Details
 ### Configuration Details
 
 The cluster is started based on the content of the `k3d_cluster_config.yml` file. This includes:
