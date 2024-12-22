@@ -35,3 +35,14 @@ If the "polylith" plugin appears in the list, the installation is complete.
 
 ## Setting Up LDE
 
+LDE (Local Development Environment) provides a streamlined environment for managing Kubernetes clusters locally using k3d.
+
+Its primary purpose is to simplify the setup and management of a local Kubernetes cluster for development.
+
+For detailed setup instructions, please refer to the [LDE/README.md](LDE/README.md) file.
+
+### Key Features of LDE
+
+- Easy creation, starting, and stopping of Kubernetes clusters locally.
+- Simple mechanism to delete clusters when they are no longer needed.
+
