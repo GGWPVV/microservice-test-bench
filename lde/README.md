@@ -55,7 +55,7 @@ This command will display the names and details of all k3d clusters currently av
 
 3. Verify that the cluster is running:
    ```bash
-   kubectl get nodes
+   kubectl wait --for=condition=Ready nodes --all --timeout=300s
    ```
 
 ### Stopping the Cluster

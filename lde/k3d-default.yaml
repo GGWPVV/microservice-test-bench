@@ -6,3 +6,19 @@ metadata:
 servers: 1
 agents: 0
 image: docker.io/rancher/k3s:v1.30.3-k3s1
+
+# Add a local Docker registry
+registries:
+  create:
+    name: 'k3d-registry.localhost'
+    host: '0.0.0.0'
+    hostPort: '5001'
+
+# Map external services to localhost
+ports:
+  - port: 8080:80    # Map port 80 in the cluster to port 8080 on localhost
+  - port: 8443:443   # Map port 443 in the cluster to port 8443 on localhost
+  - port: 27017:27017 # Map port 27017 in the cluster to port 27017 on localhost for MongoDB
+  - port: 6379:6379  # Map port 6379 in the cluster to port 6379 on localhost for Redis
+  - port: 5432:5432  # Map port 5432 in the cluster to port 5432 on localhost for PostgreSQL
+
