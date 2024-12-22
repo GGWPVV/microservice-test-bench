@@ -15,7 +15,9 @@ This folder contains the configuration files and scripts necessary for setting u
    - `manage_k3d_cluster.py`: A Python-based script to streamline the setup, maintenance, and teardown of the cluster.  
      Features:
       - **Start the cluster**: Create and launch the k3d cluster using the `k3d_cluster_config.yml` file.
-      - **Stop the cluster**: Delete the running k3d cluster.
+      - **Stop the cluster**: Stop the running k3d cluster.
+      - **Delete the cluster**: Delete the k3d cluster.
+      - **List clusters**: List all existing k3d clusters.
 
 ## Prerequisites
 
@@ -27,6 +29,15 @@ To use the files and script in this folder, ensure that the following tools are 
 - [Python 3.6+](https://www.python.org/): Required to execute the management script.
 
 ## Usage
+
+### Listing Clusters
+
+To list all existing clusters:
+```bash
+python manage_k3d_cluster.py list
+```
+This command will display the names and details of all k3d clusters currently available on the system.
+
 
 ### Setting Up the Cluster
 
@@ -49,19 +60,18 @@ To use the files and script in this folder, ensure that the following tools are 
 
 ### Stopping the Cluster
 
-To stop and delete the cluster:
+To stop the cluster:
 ```bash
 python manage_k3d_cluster.py stop
 ```
-### Listing Clusters
 
-To list all existing clusters:
+### Deleting the Cluster
+
+To delete the cluster:
 ```bash
-python manage_k3d_cluster.py list
+python manage_k3d_cluster.py delete
 ```
-This command will display the names and details of all k3d clusters currently available on the system.
 
-### Configuration Details
 ### Configuration Details
 
 The cluster is started based on the content of the `k3d_cluster_config.yml` file. This includes:
