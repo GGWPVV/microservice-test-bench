@@ -33,3 +33,5 @@ The Polylith plugin helps manage modular project structures. Follow the steps be
 If the "polylith" plugin appears in the list, the installation is complete.
 
 
+## Setting Up LDE
+
