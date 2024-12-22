@@ -74,23 +74,27 @@ python manage_k3d_cluster.py delete
 
 ### Configuration Details
 
-The cluster is started based on the content of the `k3d_cluster_config.yml` file. This includes:
+The cluster is started based on the content of the `k3d-default.yaml` file. This includes:
 - Cluster Name: `lde-cluster`
-- Server and Agent Nodes:
-   - 1 server node
-   - 2 agent nodes
+- Server Nodes: 1
+- Agent Nodes: 0
+- Image: `docker.io/rancher/k3s:v1.30.3-k3s1`
+- Docker Registry:
+   - Name: `k3d-registry.localhost`
+   - Host: `0.0.0.0`
+   - Host Port: `5001`
 - Port Mappings:
    - **8080 on host → 80 in cluster**
    - **8443 on host → 443 in cluster**
-- Volume Mounts:
-   - Mounts a Docker volume `my-local-volume` to `/data` within the cluster.
-- Disabled Components:
-   - **Service Load Balancer** (`--disable=servicelb` for server nodes).
+   - **5001 on host → 5001 in cluster** (Docker registry)
+   - **27017 on host → 27017 in cluster** (MongoDB)
+   - **6379 on host → 6379 in cluster** (Redis)
+   - **5432 on host → 5432 in cluster** (PostgreSQL)
 
 ### Notes
 
-- The Python script automatically uses the `k3d_cluster_config.yml` configuration file. Ensure it is in the same directory as the script.
-- Modify `k3d_cluster_config.yml` as needed to fit your local development setup requirements.
+- The Python script automatically uses the `k3d-default.yaml` configuration file. Ensure it is in the same directory as the script.
+- Modify `k3d-default.yaml` as needed to fit your local development setup requirements.
 - Use `kubectl` to manage resources within the cluster once it’s running.
 
 ## References
