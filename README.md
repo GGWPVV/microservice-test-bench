@@ -39,7 +39,7 @@ LDE (Local Development Environment) provides a streamlined environment for manag
 
 Its primary purpose is to simplify the setup and management of a local Kubernetes cluster for development.
 
-For detailed setup instructions, please refer to the [LDE/README.md](LDE/README.md) file.
+For detailed setup instructions, please refer to the [lde/README.md](lde/README.md) file.
 
 ### Key Features of LDE
 
