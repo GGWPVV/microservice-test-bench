@@ -18,6 +18,17 @@ spec:
         image: redis:latest
         ports:
         - containerPort: 6379
+        env:
+        - name: REDIS_USER
+          valueFrom:
+            configMapKeyRef:
+              name: lde-env
+              key: REDIS_USER
+        - name: REDIS_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: lde-env
+              key: REDIS_PASSWORD
 ---
 apiVersion: v1
 kind: Service
