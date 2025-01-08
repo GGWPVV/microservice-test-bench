@@ -57,6 +57,19 @@ def delete_cluster():
     run_command(f"k3d cluster delete lde-cluster")  # `lde-cluster` must match the cluster name in the config file
 
 
+def check_gpu():
+    print("Checking if NVIDIA GPU is available in Docker...")
+    result = subprocess.run("docker info --format '{{ json .Runtimes.nvidia }}'", shell=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        print("Failed to check for NVIDIA GPU support. Ensure Docker is properly configured.")
+        sys.exit(1)
+    elif result.stdout.strip() == "null" or result.stdout.strip() == "":
+        print("No NVIDIA GPU runtime detected in Docker.")
+    else:
+        print("NVIDIA GPU runtime is available in Docker.")
+        run_command("docker run --rm --gpus all nvidia/cuda:12.6.3-runtime-ubuntu24.04 nvidia-smi")
+
+
 def list_clusters():
     container_engine = get_container_engine()
     print(f"Using '{container_engine}' as the container engine.")
@@ -68,7 +81,7 @@ def main():
     parser = argparse.ArgumentParser(description="Manage a k3d cluster using a k3d configuration file.")
     parser.add_argument(
         "action",
-        choices=["start", "stop", "list", "delete"],
+        choices=["start", "stop", "list", "delete", "check-gpu"],
         help="Specify the action to perform: 'start' to create/start the cluster, 'stop' to stop the cluster, 'list' to list clusters, or 'delete' to delete the cluster."
     )
     args = parser.parse_args()
@@ -81,6 +94,8 @@ def main():
         list_clusters()
     elif args.action == "delete":
         delete_cluster()
+    elif args.action == "check-gpu":
+        check_gpu()
 
 
 if __name__ == "__main__":

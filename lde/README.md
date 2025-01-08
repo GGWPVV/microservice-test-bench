@@ -71,7 +71,23 @@ To delete the cluster:
 ```bash
 python manage_k3d_cluster.py delete
 ```
+remove text after this line
 
+### Checking NVIDIA GPU Availability
+
+To facilitate development with GPU-accelerated workloads, `manage_k3d_cluster.py` includes a command to verify the availability and proper configuration of an NVIDIA GPU in Docker.
+
+To check GPU availability:
+```bash
+python manage_k3d_cluster.py check-gpu
+```
+
+This command reports whether Docker is properly configured to access an NVIDIA GPU and whether the necessary runtimes are installed.
+
+Possible Outputs:
+1. 'NVIDIA GPU is available and properly configured in Docker.'
+2. 'NVIDIA runtime is not available in Docker. Ensure the NVIDIA Container Toolkit is installed.'
+3. 'Unable to use NVIDIA GPU in Docker. Please ensure drivers and NVIDIA Container Toolkit are installed properly.'
 ### Configuration Details
 
 The cluster is started based on the content of the `k3d-default.yaml` file. This includes:
@@ -96,6 +112,8 @@ The cluster is started based on the content of the `k3d-default.yaml` file. This
 - The Python script automatically uses the `k3d-default.yaml` configuration file. Ensure it is in the same directory as the script.
 - Modify `k3d-default.yaml` as needed to fit your local development setup requirements.
 - Use `kubectl` to manage resources within the cluster once it’s running.
+
+- Use the `check-gpu` command in `manage_k3d_cluster.py` to verify NVIDIA GPU availability for workload acceleration.
 
 ## References
 
