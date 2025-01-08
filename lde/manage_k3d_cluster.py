@@ -42,6 +42,7 @@ def start_cluster():
 
     # Apply the Kubernetes manifests
     print("Applying Kubernetes manifests for MongoDB, Redis, and PostgreSQL...")
+    run_command("kubectl apply -f env.yaml")
     run_command("kubectl apply -f mongo-deployment.yaml")
     run_command("kubectl apply -f redis-deployment.yaml")
     run_command("kubectl apply -f postgres-deployment.yaml")

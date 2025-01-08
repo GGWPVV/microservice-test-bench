@@ -16,9 +16,9 @@ registries:
 
 # Map external services to localhost
 ports:
-  - port: 8080:80    # Map port 80 in the cluster to port 8080 on localhost
-  - port: 8443:443   # Map port 443 in the cluster to port 8443 on localhost
-  - port: 27017:27017 # Map port 27017 in the cluster to port 27017 on localhost for MongoDB
-  - port: 6379:6379  # Map port 6379 in the cluster to port 6379 on localhost for Redis
-  - port: 5432:5432  # Map port 5432 in the cluster to port 5432 on localhost for PostgreSQL
+  - port: 80:80    # Map port 80 in the cluster to port 80 on localhost
+  - port: 443:443   # Map port 443 in the cluster to port 443 on localhost
+  - port: 27017:30017 # Map port 27017 in the cluster to port 27017 on localhost for MongoDB
+  - port: 6379:30379  # Map port 6379 in the cluster to port 6379 on localhost for Redis
+  - port: 5432:30432  # Map port 5432 in the cluster to port 5432 on localhost for PostgreSQL
 
