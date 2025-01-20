@@ -1,5 +1,4 @@
-# dataPipelineExperiments
-just an experiment with different lib's
+# LED Control System with Polylith and Poetry monorepository
 
 ## Setting Up Poetry with Polylith Plugin
 
