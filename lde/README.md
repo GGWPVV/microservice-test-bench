@@ -24,6 +24,7 @@ This folder contains the configuration files and scripts necessary for setting u
 To use the files and script in this folder, ensure that the following tools are installed on your system:
 
 - [k3d](https://k3d.io): A lightweight wrapper to run Kubernetes clusters in Docker.
+- [arkade](https://github.com/alexellis/arkade): Portable marketplace for Kubernetes applications.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/): Command-line tool for interacting with Kubernetes clusters.
 - [Docker](https://www.docker.com/): Required for running k3d clusters.
 - [Python 3.6+](https://www.python.org/): Required to execute the management script.

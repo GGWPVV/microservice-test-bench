@@ -3,6 +3,8 @@ import os
 import sys
 import subprocess
 import shutil
+import http.client
+import json
 
 CONFIG_FILE = "k3d-default.yaml"  # Path to the k3d configuration file
 
