@@ -1,5 +1,5 @@
 [tool.polylith]
-namespace = "back_python"
+namespace = "python"
 git_tag_pattern = "stable-*"
 
 [tool.polylith.structure]
