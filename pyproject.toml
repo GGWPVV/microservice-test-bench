@@ -14,7 +14,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.13"
 kombu = "^5.4.2"
-fastapi = "^0.115.6"
+fastapi = {extras = ["standard"], version = "^0.115.7"}
 faststream = "^0.5.33"
 django = "^5.1.5"
 
