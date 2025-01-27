@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "datapipelineexperiments"
+name = "lde-monorepo"
 version = "0.1.0"
 description = ""
 authors = ["Sergii Pogorielov"]
