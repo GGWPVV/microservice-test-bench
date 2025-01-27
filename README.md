@@ -45,3 +45,20 @@ For detailed setup instructions, please refer to the [lde/README.md](lde/README.
 - Easy creation, starting, and stopping of Kubernetes clusters locally.
 - Simple mechanism to delete clusters when they are no longer needed.
 
+### Setting Up Your Integrated Development Environment (IDE)
+#### VSCode
+We have pre-configured settings for VS Code in the `.vscode` folder. This includes:
+*   `settings.json`: Extra paths have been added to allow the IDE to navigate and work with our multi-root project structure.
+*   `launch.json`: Configuration files are provided to enable debugging FastAPI or Django applications directly from within VS Code.
+
+#### PyCharm Setup
+Configure your project settings in PyCharm as follows:
+
+1. **Project Structure**:
+	* Set "base", "components", and "development" folders as source directories.
+2. **Django Support (if applicable)**:
+	* Enable Django support to run Django applications from within the IDE.
+3. **FastAPI Configuration (if applicable)**:
+	* Create a new Run/Debug configuration for FastAPI, setting the application file to `bases/backend/fapi_example/core.py`.
+
+This setup should provide you with a streamlined development environment in PyCharm.
