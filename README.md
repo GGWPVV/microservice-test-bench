@@ -82,10 +82,6 @@ Its primary purpose is to simplify the setup and management of a local Kubernete
 
 For detailed setup instructions, please refer to the [lde/README.md](lde/README.md) file.
 
-### Key Features of LDE
-
-- Easy creation, starting, and stopping of Kubernetes clusters locally.
-- Simple mechanism to delete clusters when they are no longer needed.
 
 ## Setting Up Your Integrated Development Environment (IDE)
 ### VSCode
