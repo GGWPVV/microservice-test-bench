@@ -52,7 +52,7 @@ Sort of like "I have a supercompure but I should use it only as remote terminal 
 
 ---
 
-# Let’s try to design LDE that will be good enough
+# Let's try to design LDE that will be good enough
 
 ---
 

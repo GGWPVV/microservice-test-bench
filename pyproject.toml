@@ -7,8 +7,9 @@ license = "MIT"
 readme = "README.md"
 package-mode = false
 packages = [
-    {include = "back_python/data_api",from = "bases"},
-    {include = "back_python/observability",from = "components"},
+    {include = "backend/fapi_example",from = "bases"},
+    {include = "backend/dj_example",from = "bases"},
+    {include = "backend/dummy_component", from = "components"}
 ]
 
 [tool.poetry.dependencies]
@@ -17,6 +18,7 @@ kombu = "^5.4.2"
 fastapi = {extras = ["standard"], version = "^0.115.7"}
 faststream = "^0.5.33"
 django = "^5.1.5"
+django-allauth = "^65.3.1"
 
 
 [build-system]

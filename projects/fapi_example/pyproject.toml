@@ -5,10 +5,15 @@ version = "0.1.0"
 authors = ["Sergii Pogorielov"]
 license = ""
 
-packages = []
+packages = [
+    {include = "backend/fapi_example", from = "../../bases"},
+    {include = "backend/dummy_component", from = "../../components"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.13"
+fastapi = {extras = ["standard"], version = "^0.115.7"}
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

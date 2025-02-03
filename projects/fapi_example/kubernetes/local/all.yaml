@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fapi-example
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fapi-example
+  template:
+    metadata:
+      labels:
+        app: fapi-example
+    spec:
+      containers:
+      - name: fapi-example
+        image: k3d-registry.localhost:5001/fapi-example:local
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: lde-env
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fapi-example
+  namespace: default
+spec:
+  selector:
+    app: fapi-example
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fapi-example
+  namespace: default
+spec:
+  rules:
+  - host: fapi.example.localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fapi-example
+            port:
+              number: 80
