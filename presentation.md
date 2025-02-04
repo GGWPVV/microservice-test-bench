@@ -2,6 +2,9 @@
 title: Who Should Design LDE?
 author: Sergii Pogorielov
 theme: default
+class:
+  - lead
+  - invert
 paginate: true
 marp: true
 ---
@@ -77,3 +80,13 @@ Sort of like "I have a supercompure but I should use it only as remote terminal 
 	+ Distributed tracing
 * Single Sign-On (SSO) service for authentication and authorization across multiple applications
 
+---
+
+---
+# links
+
+repository https://github.com/DDEFramework/LDE-monorepo
+
+this presentation https://github.com/DDEFramework/LDE-monorepo/blob/main/presentation.md
+
+---
