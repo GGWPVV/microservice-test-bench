@@ -5,14 +5,14 @@ This folder contains the configuration files and scripts necessary for setting u
 ## Contents
 
 1. **k3d Configuration File**
-   - `k3d_cluster_config.yml`: Defines and manages the k3d cluster. Customize cluster settings such as:
+   - [`k3d_default.yml`](k3d-default.yaml): Defines and manages the k3d cluster. Customize cluster settings such as:
       - Number of nodes (servers and agents)
       - Ports mapping for host and cluster
       - Volume mounts
       - Cluster name and runtime options
 
 2. **Python Management Script**
-   - `manage_k3d_cluster.py`: A Python-based script to streamline the setup, maintenance, and teardown of the cluster.  
+   - [`manage_k3d_cluster.py`](manage_k3d_cluster.py): A Python-based script to streamline the setup, maintenance, and teardown of the cluster.  
      Features:
       - **Start the cluster**: Create and launch the k3d cluster using the `k3d_cluster_config.yml` file.
       - **Stop the cluster**: Stop the running k3d cluster.

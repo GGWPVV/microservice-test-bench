@@ -3,3 +3,4 @@ poetry.lock
 db.sqlite*
 *__pycache__*
 dist
+.python-version
