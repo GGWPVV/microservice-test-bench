@@ -2,6 +2,9 @@ import subprocess
 import sys
 import argparse
 
+from managment.tools.core import  create_parser, execute_command, kubectl_operation, kubectl_apply_manifest, kubectl_delete_manifest, run_command
+
+
 ECK_VERSION = "2.16.1"
 CRDS_URL = f"https://download.elastic.co/downloads/eck/{ECK_VERSION}/crds.yaml"
 OPERATOR_URL = f"https://download.elastic.co/downloads/eck/{ECK_VERSION}/operator.yaml"
@@ -123,24 +126,24 @@ spec:
                   number: 8200
 """
 
-def run_command(command):
-    try:
-        subprocess.check_call(command, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(f"\033[91mCommand failed: {command}\nError: {e}\033[0m")
-        # sys.exit(1)
+# def run_command(command):
+#     try:
+#         subprocess.check_call(command, shell=True)
+#     except subprocess.CalledProcessError as e:
+#         print(f"\033[91mCommand failed: {command}\nError: {e}\033[0m")
+#         # sys.exit(1)
 
-def kubectl_operation(operation, url):
-    command = f"kubectl {operation} -f {url}"
-    run_command(command)
+# def kubectl_operation(operation, url):
+#     command = f"kubectl {operation} -f {url}"
+#     run_command(command)
 
-def kubectl_apply_manifest(manifest):
-    command = f"cat <<EOF | kubectl apply -f -\n{manifest}\nEOF"
-    run_command(command)
+# def kubectl_apply_manifest(manifest):
+#     command = f"cat <<EOF | kubectl apply -f -\n{manifest}\nEOF"
+#     run_command(command)
 
-def kubectl_delete_manifest(manifest):
-    command = f"cat <<EOF | kubectl delete -f -\n{manifest}\nEOF"
-    run_command(command)
+# def kubectl_delete_manifest(manifest):
+#     command = f"cat <<EOF | kubectl delete -f -\n{manifest}\nEOF"
+#     run_command(command)
 
 def apply_command(args):
     print(f"Applying with arguments: {args}")
@@ -164,23 +167,13 @@ def delete_command(args):
     kubectl_operation("delete", OPERATOR_URL)
 
 def main():
-    parser = argparse.ArgumentParser(description="Tool with apply and delete commands.")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Apply command
-    apply_parser = subparsers.add_parser("apply", help="Apply a configuration")
-    apply_parser.set_defaults(func=apply_command)
-
-    # Delete command
-    delete_parser = subparsers.add_parser("delete", help="Delete a configuration")
-    delete_parser.set_defaults(func=delete_command)
+    parser, subparsers = create_parser("Tool with apply and delete commands for eck and elk.")  # Get both
+    subparsers.choices["apply"].set_defaults(func=apply_command)
+    subparsers.choices["delete"].set_defaults(func=delete_command)
 
     args = parser.parse_args()
+    execute_command(parser, args)
 
-    if args.command:
-        args.func(args)  # Call the appropriate function
-    else:
-        parser.print_help()
 
 if __name__ == "__main__":
     main()
