@@ -1,5 +1,4 @@
 import subprocess
-import sys
 import argparse
 
 
@@ -23,7 +22,7 @@ def kubectl_operation(operation, filename):
 
 def kubectl_apply_manifest(manifest):
     """
-    Applies a Kubernetes manifest using kubectl.
+    Applies a Kubernetes manifest from str using kubectl.
     """
     command = f"cat <<EOF | kubectl apply -f -\n{manifest}\nEOF"
     run_command(command)
@@ -31,7 +30,7 @@ def kubectl_apply_manifest(manifest):
 
 def kubectl_delete_manifest(manifest):
     """
-    Deletes a Kubernetes manifest using kubectl.
+    Deletes a Kubernetes manifest from str using kubectl.
     """
     command = f"cat <<EOF | kubectl delete -f -\n{manifest}\nEOF"
     run_command(command)

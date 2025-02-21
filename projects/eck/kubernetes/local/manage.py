@@ -1,7 +1,3 @@
-import subprocess
-import sys
-import argparse
-
 from managment.tools.core import  create_parser, execute_command, kubectl_operation, kubectl_apply_manifest, kubectl_delete_manifest, run_command
 
 
@@ -125,25 +121,6 @@ spec:
                 port:
                   number: 8200
 """
-
-# def run_command(command):
-#     try:
-#         subprocess.check_call(command, shell=True)
-#     except subprocess.CalledProcessError as e:
-#         print(f"\033[91mCommand failed: {command}\nError: {e}\033[0m")
-#         # sys.exit(1)
-
-# def kubectl_operation(operation, url):
-#     command = f"kubectl {operation} -f {url}"
-#     run_command(command)
-
-# def kubectl_apply_manifest(manifest):
-#     command = f"cat <<EOF | kubectl apply -f -\n{manifest}\nEOF"
-#     run_command(command)
-
-# def kubectl_delete_manifest(manifest):
-#     command = f"cat <<EOF | kubectl delete -f -\n{manifest}\nEOF"
-#     run_command(command)
 
 def apply_command(args):
     print(f"Applying with arguments: {args}")

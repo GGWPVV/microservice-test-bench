@@ -1,6 +1,3 @@
-import subprocess
-import sys
-import argparse
 import os
 
 from managment.tools.core import  create_parser, execute_command, kubectl_operation
