@@ -12,8 +12,8 @@ docker push registry.localhost:5001/fapi-example:local
 kubernetes commands   
 apply
 ```bash
-kubectl apply -f projects/fapi_example/kubernetes/local/all.yaml
+kubectl apply -f projects/fapi_example/kubernetes/local/main.yaml
 ```
 delete
 ```bash
-kubectl delete -f projects/fapi_example/kubernetes/local/all.yaml
+kubectl delete -f projects/fapi_example/kubernetes/local/main.yaml

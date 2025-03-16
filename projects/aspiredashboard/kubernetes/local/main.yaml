@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspire-dashboard
+  labels:
+    app: aspire-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aspire-dashboard
+  template:
+    metadata:
+      labels:
+        app: aspire-dashboard
+    spec:
+      containers:
+        - name: aspire-dashboard
+          image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+          imagePullPolicy: Always # Or IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18888
+            - name: grpc
+              containerPort: 4317
+          env:
+            - name: DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aspire-dashboard
+  labels:
+    app: aspire-dashboard
+spec:
+  ports:
+    - name: http
+      port: 18888
+      targetPort: 18888
+    - name: grpc
+      port: 4317
+      targetPort: 4317
+      nodePort: 30317
+  selector:
+    app: aspire-dashboard
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aspire-dashboard
+spec:
+  rules:
+    - host: aspire-dashboard.localhost # Replace with your desired host
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aspire-dashboard
+                port:
+                  number: 18888
