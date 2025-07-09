@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-by-age
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discount-by-age
+  template:
+    metadata:
+      labels:
+        app: discount-by-age
+    spec:
+      containers:
+      - name: discount-by-age
+        image: your-registry/discount-by-age:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discount-by-age
+spec:
+  selector:
+    app: discount-by-age
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
