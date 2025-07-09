@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-collector
+  labels:
+    app: opentelemetry-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opentelemetry-collector
+  template:
+    metadata:
+      labels:
+        app: opentelemetry-collector
+    spec:
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector:latest
+        ports:
+        - containerPort: 4317 # OTLP gRPC
+          name: otlp-grpc
+        - containerPort: 4318 # OTLP HTTP
+          name: otlp-http
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /etc/otel-collector-config
+      volumes:
+      - name: otel-collector-config-vol
+        configMap:
+          name: otel-collector-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+
+    processors:
+      batch:
+
+    exporters:
+      logging:
+        loglevel: debug # Set to 'info' or 'warn' for less verbose output in production
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry-collector
+spec:
+  selector:
+    app: opentelemetry-collector
+  ports:
+  - protocol: TCP
+    port: 4317 # OTLP gRPC
+    targetPort: 4317
+    name: otlp-grpc
+  - protocol: TCP
+    port: 4318 # OTLP HTTP
+    targetPort: 4318
+    name: otlp-http

@@ -42,12 +42,13 @@ def start_cluster():
     print("Waiting for the cluster to be ready...")
     run_command("kubectl wait --for=condition=Ready nodes --all --timeout=300s")
 
+    # TODO: move this to separate projects
     # Apply the Kubernetes manifests
-    print("Applying Kubernetes manifests for MongoDB, Redis, and PostgreSQL...")
-    run_command("kubectl apply -f env.yaml")
-    run_command("kubectl apply -f mongo-deployment.yaml")
-    run_command("kubectl apply -f redis-deployment.yaml")
-    run_command("kubectl apply -f postgres-deployment.yaml")
+    # print("Applying Kubernetes manifests for MongoDB, Redis, and PostgreSQL...")
+    # run_command("kubectl apply -f env.yaml")
+    # run_command("kubectl apply -f mongo-deployment.yaml")
+    # run_command("kubectl apply -f redis-deployment.yaml")
+    # run_command("kubectl apply -f postgres-deployment.yaml")
 
 
 def stop_cluster():

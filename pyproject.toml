@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "datapipelineexperiments"
+name = "lde-monorepo"
 version = "0.1.0"
 description = ""
 authors = ["Sergii Pogorielov"]
@@ -7,17 +7,28 @@ license = "MIT"
 readme = "README.md"
 package-mode = false
 packages = [
-    {include = "back_python/data_api",from = "bases"},
-    {include = "back_python/observability",from = "components"},
+    {include = "backend/fapi_example",from = "bases"},
+    {include = "backend/dj_example",from = "bases"},
+    {include = "backend/dummy_component", from = "components"},
+    {include = "backend/observability", from = "components"}
+
 ]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 kombu = "^5.4.2"
-fastapi = "^0.115.6"
+fastapi = {extras = ["standard"], version = "^0.115.7"}
 faststream = "^0.5.33"
+<<<<<<< HEAD
 pydantic = "^2.11.7"
 uvicorn = "^0.35.0"
+=======
+django = "^5.1.5"
+django-allauth = "^65.3.1"
+opentelemetry-distro = "^0.52b0"
+opentelemetry-exporter-otlp-proto-grpc = "^1.31.0"
+opentelemetry-instrumentation-fastapi = "^0.52b0"
+>>>>>>> 52cce8ed088da12a70c7773cc42107bdfd7ff47f
 
 
 [build-system]

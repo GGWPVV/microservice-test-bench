@@ -21,4 +21,5 @@ ports:
   - port: 27017:30017 # Map port 27017 in the cluster to port 27017 on localhost for MongoDB
   - port: 6379:30379  # Map port 6379 in the cluster to port 6379 on localhost for Redis
   - port: 5432:30432  # Map port 5432 in the cluster to port 5432 on localhost for PostgreSQL
+  - port: 4317:30317 # Map port 4317 in the cluster to port 4317 on localhost for Opentelemetry grpc for Aspiro dashboard
 

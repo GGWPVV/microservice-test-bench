@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fapi_example"
+version = "0.1.0"
+
+authors = ["Sergii Pogorielov"]
+license = ""
+
+packages = [
+    {include = "backend/fapi_example", from = "../../bases"},
+    {include = "backend/dummy_component", from = "../../components"},
+    {include = "backend/observability", from = "../../components"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+fastapi = {extras = ["standard"], version = "^0.115.7"}
+opentelemetry-distro = "^0.52b0"
+opentelemetry-exporter-otlp-proto-grpc = "^1.31.0"
+opentelemetry-instrumentation-fastapi = "^0.52b0"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
