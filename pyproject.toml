@@ -12,10 +12,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.10"
 kombu = "^5.4.2"
 fastapi = "^0.115.6"
 faststream = "^0.5.33"
+pydantic = "^2.11.7"
+uvicorn = "^0.35.0"
 
 
 [build-system]
