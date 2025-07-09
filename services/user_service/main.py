@@ -21,3 +21,7 @@ def create_user(user: UserCreate):
     new_user = User(**user.dict(), id=str(uuid4()), token=str(uuid4()))
     users.append(new_user)
     return new_user
+
+@app.get("/userslist", response_model=List[User])
+def get_users():
+    return users
