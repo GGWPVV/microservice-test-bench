@@ -1,10 +1,10 @@
-FROM python:3.10
+FROM python:3.12
 
 WORKDIR /app
 
-COPY . /app
+COPY . .
 
-RUN pip install fastapi uvicorn pydantic
+RUN pip install --no-cache-dir fastapi uvicorn sqlalchemy psycopg2-binary pydantic
 
 EXPOSE 8000
 

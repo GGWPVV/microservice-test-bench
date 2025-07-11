@@ -6,6 +6,10 @@ services:
     ports:
       - "8000:8000"
     container_name: user_service
+    environment:
+      - DB_URL=postgresql://postgreuser:postgrepass@postgres:5432/mydatabase
+    depends_on:
+      - postgres
 
   discount_by_age_service:
     build:
@@ -20,3 +24,18 @@ services:
     ports:
       - "8002:8000"
     container_name: discount_by_city_service
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgreuser
+      POSTGRES_PASSWORD: postgrepass
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
