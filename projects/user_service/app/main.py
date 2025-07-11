@@ -1,16 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel
 from typing import List
-from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from database import SessionLocal, engine, Base
-from models import UserDB
+from models import User, UserCreate, UserOut
 
-app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
 
 # создаём таблицы, если их нет
 Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+# CORS (если надо)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # зависимость получения сессии
 def get_db():
@@ -20,28 +28,13 @@ def get_db():
     finally:
         db.close()
 
-# Pydantic-схемы
-class UserCreate(BaseModel):
-    username: str
-    age: int
-    city: str
-
-class User(BaseModel):
-    id: str
-    username: str
-    age: int
-    city: str
-    token: str
-
 # POST /users — создать пользователя
-@app.post("/users", response_model=User)
+@app.post("/users", response_model=UserOut)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    new_user = UserDB(
-        id=str(uuid4()),
+    new_user = User(
         username=user.username,
         age=user.age,
         city=user.city,
-        token=str(uuid4())
     )
     db.add(new_user)
     db.commit()
@@ -49,7 +42,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 # GET /userslist — получить список пользователей
-@app.get("/userslist", response_model=List[User])
+@app.get("/userslist", response_model=List[UserOut])
 def get_users(db: Session = Depends(get_db)):
-    users = db.query(UserDB).all()
+    users = db.query(User).all()
     return users

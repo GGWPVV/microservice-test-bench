@@ -2,7 +2,7 @@ version: "3.8"
 services:
   user_service:
     build:
-      context: ./services/user_service
+      context: ./projects/user_service/app
     ports:
       - "8000:8000"
     container_name: user_service
@@ -13,14 +13,14 @@ services:
 
   discount_by_age_service:
     build:
-      context: ./services/discount_by_age_service
+      context: ./projects/discount_by_age_service/app
     ports:
       - "8001:8000"
     container_name: discount_by_age_service
 
   discount_by_city_service:
     build:
-      context: ./services/discount_by_city_service
+      context: ./projects/discount_by_city_service/app
     ports:
       - "8002:8000"
     container_name: discount_by_city_service
