@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-by-city
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discount-by-city
+  template:
+    metadata:
+      labels:
+        app: discount-by-city
+    spec:
+      containers:
+      - name: discount-by-city
+        image: your-registry/discount-by-city:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discount-by-city
+spec:
+  selector:
+    app: discount-by-city
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
