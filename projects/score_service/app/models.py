@@ -6,6 +6,6 @@ class UserScore(Base):
     __tablename__ = "user_scores"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, unique=True, nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
     score = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
