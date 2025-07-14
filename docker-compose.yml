@@ -7,9 +7,11 @@ services:
       - "8000:8000"
     container_name: user_service
     environment:
-      - DB_URL=postgresql://postgreuser:postgrepass@postgres:5432/mydatabase
+      - DB_URL=postgresql://userpostgres:userpassword@userdb:5432/userdb
     depends_on:
-      - postgres
+      - userdb
+    networks:
+      - app-network
 
   discount_by_age_service:
     build:
@@ -25,17 +27,45 @@ services:
       - "8002:8000"
     container_name: discount_by_city_service
 
-  postgres:
+  userdb:
     image: postgres:16
-    container_name: postgres
+    container_name: userdb
     environment:
-      POSTGRES_USER: postgreuser
-      POSTGRES_PASSWORD: postgrepass
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: userpostgres
+      POSTGRES_PASSWORD: userpassword
+      POSTGRES_DB: userdb
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - userdb_data:/var/lib/postgresql/data
+  scoredb:
+    image: postgres:16
+    container_name: scoredb
+    environment:
+      POSTGRES_USER: scorepostgres
+      POSTGRES_PASSWORD: scorepassword
+      POSTGRES_DB: scoredb
+    ports:
+      - "5433:5432"
+    volumes:
+      - scoredb_data:/var/lib/postgresql/data
+  score-service:
+    build: 
+      context: ./projects/score_service/app
+    environment:
+      - DB_URL=postgresql://scorepostgres:scorepassword@scoredb:5432/scoredb
+    depends_on:
+      - scoredb
+    ports:
+      - "8003:8000"
+    networks:
+      - app-network
+  
 
 volumes:
-  pg_data:
+  userdb_data:
+  scoredb_data:
+  
+networks:
+  app-network:
+    driver: bridge

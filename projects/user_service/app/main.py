@@ -48,15 +48,30 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return {"message": "User created successfully", "user_name": str(new_user.username)}
 
 # POST /login — авторизация
+from auth import create_jwt  # импорт функции
+
 @app.post("/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == user_data.username).first()
     if not user or not pwd_context.verify(user_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"message": "Login successful", "user_id": str(user.id)}
+    token = create_jwt(user.id)
+
+    return {"access_token": token, "token_type": "bearer"}
+
 @app.get("/users", response_model=List[UserListOut])
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
     return users
 
+@app.get("/users/{user_id}")
+def get_user(user_id: UUID, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": str(user.id),
+        "username": user.username,
+        "city": user.city
+    }
