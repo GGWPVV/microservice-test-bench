@@ -1,6 +1,10 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.sql import func
-from .database import Base
+from sqlalchemy.dialects.postgresql import UUID
+from database import Base
+
+
+
 
 class UserScore(Base):
     __tablename__ = "user_scores"
