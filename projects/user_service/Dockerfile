@@ -1,20 +1,17 @@
 FROM python:3.12
 
-# Рабочая директория для приложения
 WORKDIR /app
 
-# Копируем requirements.txt из app в контейнер
+# Копируем requirements.txt
 COPY app/requirements.txt /app/requirements.txt
 
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Копируем весь код приложения
+# Копируем весь код приложения и alembic в /app
 COPY app /app
-
-# Копируем alembic.ini и папку миграций в корень контейнера
-COPY alembic.ini /alembic.ini
-COPY alembic /alembic
+COPY alembic.ini /app/alembic.ini
+COPY alembic /app/alembic
 
 EXPOSE 8000
 
