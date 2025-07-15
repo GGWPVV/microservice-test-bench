@@ -8,7 +8,7 @@ from uuid import UUID
 
 from database import SessionLocal, engine, Base
 import models
-from models import UserCreate, UserOut, UserLogin, User, UserListOut
+from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
 
 # создаём таблицы, если их ещё нет
 Base.metadata.create_all(bind=engine)
@@ -35,7 +35,7 @@ def get_db():
         db.close()
 
 # POST /users — регистрация нового пользователя
-@app.post("/users", status_code=201)
+@app.post("/users", status_code=201, response_model=UserCreateResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     print("UserCreate:", user)
     hashed_password = pwd_context.hash(user.password)

@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.types import DateTime
 import uuid
 from database import Base
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 
@@ -53,3 +53,7 @@ class UserListOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserCreateResponse(BaseModel):
+    message: str = Field(..., example="User created successfully")
+    user_name: str = Field(..., example="example_username")
