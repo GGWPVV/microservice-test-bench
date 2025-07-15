@@ -19,6 +19,8 @@ services:
     ports:
       - "8001:8000"
     container_name: discount_by_age_service
+    networks:
+      - app-network
 
   discount_by_city_service:
     build:
@@ -26,6 +28,8 @@ services:
     ports:
       - "8002:8000"
     container_name: discount_by_city_service
+    networks:
+      - app-network
 
   userdb:
     image: postgres:16
@@ -38,6 +42,8 @@ services:
       - "5432:5432"
     volumes:
       - userdb_data:/var/lib/postgresql/data
+    networks:
+      - app-network
   scoredb:
     image: postgres:16
     container_name: scoredb
@@ -49,6 +55,8 @@ services:
       - "5433:5432"
     volumes:
       - scoredb_data:/var/lib/postgresql/data
+    networks:
+      - app-network
   score-service:
     build: 
       context: ./projects/score_service/app

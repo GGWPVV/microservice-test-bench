@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 from typing import List
+from uuid import UUID
+
 
 from database import SessionLocal, engine, Base
 import models
