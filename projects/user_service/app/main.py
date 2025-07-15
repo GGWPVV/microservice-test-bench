@@ -37,9 +37,11 @@ def get_db():
 # POST /users — регистрация нового пользователя
 @app.post("/users", status_code=201)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    print("UserCreate:", user)
     hashed_password = pwd_context.hash(user.password)
     new_user = models.User(
         username=user.username,
+        email=user.email,
         hashed_password=hashed_password,
         city=user.city,
         age=user.age,
@@ -47,14 +49,15 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "User created successfully", "user_name": str(new_user.username)}
+    return {"message": "User created successfully", "user_name": new_user.username}
+
 
 # POST /login — авторизация
 from auth import create_jwt  # импорт функции
 
 @app.post("/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == user_data.username).first()
+    user = db.query(User).filter(User.email == user_data.email).first()
     if not user or not pwd_context.verify(user_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
