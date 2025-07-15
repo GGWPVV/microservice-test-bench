@@ -57,13 +57,32 @@ from auth import create_jwt  # импорт функции
 
 @app.post("/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
+    # Log received data
+    print("Received login data:", user_data)
+
+    # Find user by email
     user = db.query(User).filter(User.email == user_data.email).first()
-    if not user or not pwd_context.verify(user_data.password, user.hashed_password):
+    print("User found in database:", user)
+
+    # If user doesn't exist — return 401 Unauthorized
+    if not user:
+        print("User not found")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # Check password validity
+    is_password_valid = pwd_context.verify(user_data.password, user.hashed_password)
+    print("Password is valid:", is_password_valid)
+
+    if not is_password_valid:
+        print("Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Create JWT token
     token = create_jwt(user.id)
+    print("Generated token:", token)
 
     return {"access_token": token, "token_type": "bearer"}
+
 
 @app.get("/users", response_model=List[UserListOut])
 def get_users(db: Session = Depends(get_db)):
