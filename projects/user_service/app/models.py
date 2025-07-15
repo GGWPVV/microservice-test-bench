@@ -5,7 +5,9 @@ from sqlalchemy.sql import func
 from sqlalchemy.types import DateTime
 import uuid
 from database import Base
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+
 
 # SQLAlchemy модель для базы
 class User(Base):
@@ -13,6 +15,7 @@ class User(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     username = Column(String, nullable=False, unique=True, index=True)
+    email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     city = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
@@ -23,9 +26,12 @@ class User(Base):
 # Pydantic схема для создания пользователя
 class UserCreate(BaseModel):
     username: str
+    email: EmailStr
     password: str
     age: int
     city: str
+    
+
 
 # Pydantic схема для ответа пользователем
 class UserOut(BaseModel):
@@ -37,7 +43,7 @@ class UserOut(BaseModel):
         orm_mode = True
 
 class UserLogin(BaseModel):
-    username: str
+    email: str
     password: str
 
 class UserListOut(BaseModel):
