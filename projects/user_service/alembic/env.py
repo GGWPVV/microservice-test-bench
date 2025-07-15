@@ -10,7 +10,8 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from database import Base
+from app.database import Base
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
