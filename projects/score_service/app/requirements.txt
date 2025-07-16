@@ -5,3 +5,4 @@ httpx
 PyJWT
 alembic==1.16.4
 psycopg2-binary>=2.9.0
+python-jose[cryptography]
