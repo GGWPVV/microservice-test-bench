@@ -2,8 +2,10 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
 from typing import List
 from uuid import UUID
+from jose import jwt, JWTError
 
 
 from database import SessionLocal, engine, Base
@@ -98,4 +100,48 @@ def get_user(user_id: UUID, db: Session = Depends(get_db)):
         "id": str(user.id),
         "username": user.username,
         "city": user.city
+    }
+SECRET_KEY = "your-secret-key"
+ALGORITHM = "HS256"
+
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+    
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+SECRET_KEY = "your-secret-key"
+ALGORITHM = "HS256"
+
+def create_jwt(user_id: str):
+    payload = {
+        "sub": str(user_id),
+        "exp": datetime.utcnow() + timedelta(hours=2)
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+
+@app.get("/user/me")
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "id": str(user.id),
+        "username": user.username,
+        "email": user.email
     }

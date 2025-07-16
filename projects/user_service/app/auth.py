@@ -1,4 +1,4 @@
-import jwt as PyJWT
+from jose import jwt
 from datetime import datetime, timedelta, timezone
 
 SECRET_KEY = "mysecret"
@@ -10,5 +10,6 @@ def create_jwt(user_id):
         "sub": str(user_id),
         "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
-    token = PyJWT.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)  # Без PyJWT
     return token
+
