@@ -91,7 +91,7 @@ def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
     return users
 
-@app.get("/users/{user_id}")
+@app.get("/users/{user_id}", include_in_schema=False) #This endpoint is hidden from Swagger but may be used in future internal services (e.g. audit or admin tools)
 def get_user(user_id: UUID, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
