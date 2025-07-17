@@ -3,6 +3,8 @@ services:
   user_service:
     build:
       context: ./projects/user_service
+    volumes:
+      - ./projects/score_service:/app
     ports:
       - "8000:8000"
     container_name: user_service
@@ -60,6 +62,8 @@ services:
   score-service:
     build: 
       context: ./projects/score_service
+    volumes:
+      - ./projects/score_service:/app
     environment:
       - DB_URL=postgresql://scorepostgres:scorepassword@scoredb:5432/scoredb
     depends_on:
