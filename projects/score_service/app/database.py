@@ -10,7 +10,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# Проверка подключения к базе
+# Check connection to the database
 try:
     with engine.connect() as connection:
         print("Successful connection to scoredb.")
@@ -19,7 +19,6 @@ except OperationalError as e:
     raise
 
 
-# Эта функция тоже должна быть здесь
 def get_db():
     db = SessionLocal()
     try:

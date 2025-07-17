@@ -18,7 +18,7 @@ def draw_score(
     Authorization: str = Header(...), 
     db: Session = Depends(get_db)
 ):
-    # 1. Проверка токена и получение user_id, username
+    # 1. Check user token
     user_data = get_user(Authorization)
     if not user_data:
         raise HTTPException(status_code=403, detail="Invalid token or user not found")
@@ -26,12 +26,12 @@ def draw_score(
     user_id = user_data["id"]
     username = user_data["username"]
 
-    # 2. Проверка, не играл ли уже пользователь
+    # 2. Check if user has already played
     existing_score = db.query(models.UserScore).filter_by(user_id=user_id).first()
     if existing_score:
-        raise HTTPException(status_code=400, detail="Ты уже использовал рулетку")
+        raise HTTPException(status_code=400, detail= "You have already played")
 
-    # 3. Генерация и запись
+    # 3. Generate a random score and save it
     score_value = random.randint(1, 1_000_000)
     new_score = models.UserScore(
         user_id=user_id,
@@ -47,9 +47,6 @@ def draw_score(
         "score": score_value,
         "timestamp": new_score.created_at
     }
-
-
-app = FastAPI()
 
 @app.get("/leaderboard")
 def get_leaderboard(db: Session = Depends(get_db)):
