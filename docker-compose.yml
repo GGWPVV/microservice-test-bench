@@ -15,21 +15,12 @@ services:
     networks:
       - app-network
 
-  discount_by_age_service:
+  discount_service:
     build:
-      context: ./projects/discount_by_age_service/app
-    ports:
-      - "8001:8000"
-    container_name: discount_by_age_service
-    networks:
-      - app-network
-
-  discount_by_city_service:
-    build:
-      context: ./projects/discount_by_city_service/app
+      context: ./projects/discount_service
     ports:
       - "8002:8000"
-    container_name: discount_by_city_service
+    container_name: discount_service
     networks:
       - app-network
 
