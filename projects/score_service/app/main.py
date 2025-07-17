@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 import random
 from datetime import datetime
+from database import get_db
+from models import UserScore
 
 import models, database
 from user_client import get_user
@@ -9,12 +11,7 @@ from user_client import get_user
 app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 @app.post("/roll")
 def draw_score(
@@ -50,3 +47,23 @@ def draw_score(
         "score": score_value,
         "timestamp": new_score.created_at
     }
+
+
+app = FastAPI()
+
+@app.get("/leaderboard")
+def get_leaderboard(db: Session = Depends(get_db)):
+    top_players = (
+        db.query(UserScore)
+        .order_by(UserScore.score.desc())
+        .limit(10)
+        .all()
+    )
+    return [
+        {
+            "username": entry.username,
+            "score": entry.score,
+            "play_date": entry.timestamp
+        }
+        for entry in top_players
+    ]
