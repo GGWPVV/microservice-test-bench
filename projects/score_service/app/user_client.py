@@ -1,4 +1,5 @@
 import requests
+import os
 def get_user(token: str):
     if not token.startswith("Bearer "):
         token = f"Bearer {token}"  # Ensure the token starts with "Bearer "
@@ -13,3 +14,6 @@ def get_user(token: str):
     except requests.exceptions.RequestException as e:
         print("Error contacting user service:", e)
         return None
+
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")

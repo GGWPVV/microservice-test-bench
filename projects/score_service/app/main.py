@@ -5,7 +5,6 @@ from datetime import datetime
 
 import models, database
 from user_client import get_user
-from datetime import datetime
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
