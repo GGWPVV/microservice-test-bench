@@ -60,7 +60,7 @@ def get_leaderboard(db: Session = Depends(get_db)):
         {
             "username": entry.username,
             "score": entry.score,
-            "play_date": entry.timestamp
+            "play_date": entry.created_at
         }
         for entry in top_players
     ]
