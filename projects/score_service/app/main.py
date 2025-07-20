@@ -4,8 +4,8 @@ import random
 from datetime import datetime
 from database import get_db
 from models import UserScore
-
-import models, database
+from redis_client import get_redis
+import models, database, json
 from user_client import get_user
 
 app = FastAPI()
@@ -49,18 +49,36 @@ def draw_score(
     }
 
 @app.get("/leaderboard")
-def get_leaderboard(db: Session = Depends(get_db)):
+async def get_leaderboard(
+    db: Session = Depends(get_db),
+    redis = Depends(get_redis),
+):
+    cached = await redis.get("leaderboard_top10")
+    if cached:
+        print("Cache hit")
+        return json.loads(cached)
+
+    print("Cache miss — querying DB")
     top_players = (
         db.query(UserScore)
         .order_by(UserScore.score.desc())
         .limit(10)
         .all()
     )
-    return [
+
+    result = [
         {
             "username": entry.username,
             "score": entry.score,
-            "play_date": entry.created_at
+            "play_date": entry.created_at.isoformat()
         }
         for entry in top_players
     ]
+
+    await redis.set("leaderboard_top10", json.dumps(result), ex=60)  # TTL 60s
+    return result
+
+@app.delete("/leaderboard/cache")
+async def clear_leaderboard_cache(redis = Depends(get_redis)):
+    await redis.delete("leaderboard_top10")
+    return {"detail": "Leaderboard cache cleared"}
