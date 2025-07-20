@@ -10,6 +10,6 @@ def create_jwt(user_id):
         "sub": str(user_id),
         "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)  # Без PyJWT
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM) 
     return token
 

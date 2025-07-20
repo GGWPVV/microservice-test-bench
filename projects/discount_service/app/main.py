@@ -38,13 +38,17 @@ def is_user_in_top(username: str) -> bool:
         print("Score service error:", e)
     return False
 
-@app.post("/discount")
+@app.post("/discount", responses={
+    401: {"description": "Unauthorized"},
+    400: {"description": "Invalid user data"},
+})
 def get_discount(token: str = Depends(oauth2_scheme)):
     user_id = decode_token(token)
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user_info = get_user_info(token)
+    print("user_info from user_service:", user_info)
     if not user_info:
         raise HTTPException(status_code=401, detail="User info unavailable")
 

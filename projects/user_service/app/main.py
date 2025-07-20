@@ -25,10 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# для хеширования паролей
+# for password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# зависимость для получения сессии БД
+# for OAuth2
 def get_db():
     db = SessionLocal()
     try:
@@ -36,7 +36,7 @@ def get_db():
     finally:
         db.close()
 
-# POST /users — регистрация нового пользователя
+    # POST /users - create new user
 @app.post("/users", status_code=201, response_model=UserCreateResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     print("UserCreate:", user)
@@ -139,9 +139,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+    print(f"Returning user info: {{'id': str(user.id), 'username': user.username, 'age': user.age}}")
 
     return {
         "id": str(user.id),
         "username": user.username,
-        "email": user.email
+        "age": user.age
     }
