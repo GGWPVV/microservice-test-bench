@@ -6,10 +6,13 @@ from typing import Optional
 import os
 
 app = FastAPI()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
+scopes={"read:discount": "Read access to discount info"})
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+
 
 def decode_token(token: str) -> Optional[str]:
     try:
@@ -30,7 +33,7 @@ def get_user_info(token: str):
 
 def is_user_in_top(username: str) -> bool:
     try:
-        response = requests.get("http://score_service:8003/leaderboard")
+        response = requests.get("http://score-service:8000/leaderboard")
         if response.status_code == 200:
             leaderboard = response.json()
             return any(entry["username"] == username for entry in leaderboard)
