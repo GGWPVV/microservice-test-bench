@@ -3,7 +3,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import requests
 from typing import Optional
-import os
+import os 
+from redis_client import get_redis, get_discount_from_cache, set_discount_cache 
+
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
@@ -45,7 +47,8 @@ def is_user_in_top(username: str) -> bool:
     401: {"description": "Unauthorized"},
     400: {"description": "Invalid user data"},
 })
-def get_discount(token: str = Depends(oauth2_scheme)):
+async def get_discount(token: str = Depends(oauth2_scheme)):
+    redis = await get_redis() 
     user_id = decode_token(token)
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -59,11 +62,16 @@ def get_discount(token: str = Depends(oauth2_scheme)):
     username = user_info.get("username")
     if username is None or age is None:
         raise HTTPException(status_code=400, detail="Invalid user data")
-
+    cached_discount = await get_discount_from_cache(redis, username)
+    if cached_discount:
+        return {"username": username, "discount": cached_discount}
     discount = 0.0
     if age >= 40:
         discount += 0.1
     if is_user_in_top(username):
         discount += 0.1
 
+    await redis.set(f"discount:{username}", discount, ex=3600)
+
     return {"username": username, "discount": round(discount, 2)}
+    
