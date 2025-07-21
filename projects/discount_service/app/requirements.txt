@@ -2,3 +2,5 @@ fastapi
 uvicorn
 python-jose[cryptography]
 requests==2.31.0
+redis>=5.0.1
+httpx
