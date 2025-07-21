@@ -14,10 +14,11 @@ models.Base.metadata.create_all(bind=database.engine)
 
 
 @app.post("/roll")
-def draw_score(
+async def draw_score(
     Authorization: str = Header(...), 
     db: Session = Depends(get_db)
 ):
+    await redis_client.delete("leaderboard_top10")
     # 1. Check user token
     user_data = get_user(Authorization)
     if not user_data:
@@ -47,6 +48,8 @@ def draw_score(
         "score": score_value,
         "timestamp": new_score.created_at
     }
+
+
 
 @app.get("/leaderboard")
 async def get_leaderboard(
