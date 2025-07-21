@@ -1,0 +1,2 @@
+aiokafka
+motor  # async MongoDB client

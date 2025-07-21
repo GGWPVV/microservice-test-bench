@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from database import SessionLocal, engine, Base
 import models
 from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
+from kafka_producer import publish_event
 
 # создаём таблицы, если их ещё нет
 Base.metadata.create_all(bind=engine)
@@ -38,7 +39,7 @@ def get_db():
 
     # POST /users - create new user
 @app.post("/users", status_code=201, response_model=UserCreateResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     print("UserCreate:", user)
     hashed_password = pwd_context.hash(user.password)
     new_user = models.User(
@@ -51,7 +52,14 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    await publish_event("user.registered", {
+        "user_id": new_user.id,
+        "username": new_user.username,
+        "timestamp": str(datetime.utcnow())
+    })
+
     return {"message": "User created successfully", "user_name": new_user.username}
+
 
 
 # POST /login — авторизация

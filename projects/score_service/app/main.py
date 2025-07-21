@@ -8,6 +8,7 @@ from redis_client import get_redis
 import models, database, json
 from user_client import get_user
 
+
 app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -56,7 +57,7 @@ async def draw_score(
 
     # 4. Flag user as having rolled
     await redis.set(f"already_rolled:{user_id}", "1", ex=60*60*24*365)
-
+    print("Connecting to Redis at:", os.getenv("REDIS_HOST"))
     return {
         "username": username,
         "score": score_value,
