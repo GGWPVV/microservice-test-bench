@@ -7,33 +7,29 @@ from typing import List
 from uuid import UUID
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
+from logger_config import setup_logger
 
 from database import SessionLocal, engine, Base
-import models, logging
+import models
 from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
 from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
 
-# создаём таблицы, если их ещё нет
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-)
-logger = logging.getLogger(__name__)
+
+logger = setup_logger("user_service")  
 
 @app.on_event("startup")
 async def on_startup():
-    logging.info("App is starting up...")
+    logger.info({"event": "startup", "message": "App is starting up..."})
     await start_kafka_producer()
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    logging.info("App is shutting down...")
+    logger.info({"event": "shutdown", "message": "App is shutting down..."})
     await stop_kafka_producer()
 
-# включаем CORS (если надо)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -41,10 +37,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# for password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# for OAuth2
 def get_db():
     db = SessionLocal()
     try:
@@ -52,50 +46,81 @@ def get_db():
     finally:
         db.close()
 
-    # POST /users - create new user
 @app.post("/users", status_code=201, response_model=UserCreateResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    logger.info("Registering new user: %s", user.username)
-    hashed_password = pwd_context.hash(user.password)
-    new_user = models.User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password,
-        city=user.city,
-        age=user.age,
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    await publish_event("user.registered", {
-        "user_id": str(new_user.id),
-        "username": new_user.username,
-        "timestamp": str(datetime.utcnow())
+    logger.info({
+        "event": "create_user_request",
+        "username": user.username,
+        "email": user.email,
+        "message": "Registering new user"
     })
-    logger.info("user.registered published for %s", new_user.username)
+    try:
+        hashed_password = pwd_context.hash(user.password)
+        new_user = models.User(
+            username=user.username,
+            email=user.email,
+            hashed_password=hashed_password,
+            city=user.city,
+            age=user.age,
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        await publish_event("user.registered", {
+            "user_id": str(new_user.id),
+            "username": new_user.username,
+            "timestamp": str(datetime.utcnow())
+        })
+        logger.info({
+            "event": "user_created",
+            "user_id": str(new_user.id),
+            "username": new_user.username,
+            "message": "User created successfully"
+        })
+        return {"message": "User created successfully", "user_name": new_user.username}
+    except Exception as e:
+        logger.error({
+            "event": "user_create_error",
+            "username": user.username,
+            "email": user.email,
+            "error": str(e),
+            "message": "Error creating user"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
-    return {"message": "User created successfully", "user_name": new_user.username}
-
-
-
-# POST /login — авторизация
-from auth import create_jwt  # импорт функции
+from auth import create_jwt
 
 @app.post("/login")
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    print("Received login data:", user_data)
+    logger.info({
+        "event": "login_attempt",
+        "email": user_data.email,
+        "message": "Login attempt"
+    })
     user = db.query(User).filter(User.email == user_data.email).first()
-    print("User found in database:", user)
     if not user:
-        print("User not found")
+        logger.warning({
+            "event": "login_failed",
+            "email": user_data.email,
+            "message": "User not found"
+        })
         raise HTTPException(status_code=401, detail="Invalid credentials")
     is_password_valid = pwd_context.verify(user_data.password, user.hashed_password)
-    print("Password is valid:", is_password_valid)
     if not is_password_valid:
-        print("Invalid password")
+        logger.warning({
+            "event": "login_failed",
+            "username": user.username,
+            "email": user_data.email,
+            "message": "Invalid password"
+        })
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_jwt(user.id)
-    logger.info("User %s logged in successfully", user.username)
+    logger.info({
+        "event": "login_success",
+        "user_id": str(user.id),
+        "username": user.username,
+        "message": "User logged in successfully"
+    })
     await publish_event("user.logged_in", {
         "user_id": str(user.id),
         "username": user.username,
@@ -103,22 +128,25 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     })
     return {"access_token": token, "token_type": "bearer"}
 
-
 @app.get("/users", response_model=List[UserListOut])
 def get_users(db: Session = Depends(get_db)):
+    logger.info({"event": "get_users", "message": "Fetching all users"})
     users = db.query(models.User).all()
     return users
 
-@app.get("/users/{user_id}", include_in_schema=False) #This endpoint is hidden from Swagger but may be used in future internal services (e.g. audit or admin tools)
+@app.get("/users/{user_id}", include_in_schema=False)
 def get_user(user_id: UUID, db: Session = Depends(get_db)):
+    logger.info({"event": "get_user", "user_id": str(user_id), "message": "Fetching user by ID"})
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
+        logger.warning({"event": "get_user_failed", "user_id": str(user_id), "message": "User not found"})
         raise HTTPException(status_code=404, detail="User not found")
     return {
         "id": str(user.id),
         "username": user.username,
         "city": user.city
     }
+
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 
