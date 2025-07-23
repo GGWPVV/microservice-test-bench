@@ -34,6 +34,7 @@ async def start_kafka_producer(retries: int = 10, delay: int = 5):
 async def publish_event(topic: str, data: dict):
     if _producer is None:
         raise RuntimeError("Kafka producer not initialized")
+    print(f"[DEBUG] Sending event to topic '{topic}': {data}")
     try:
         data["timestamp"] = str(datetime.utcnow())
         result = await _producer.send_and_wait(topic, data)

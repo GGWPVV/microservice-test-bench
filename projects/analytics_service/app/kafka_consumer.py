@@ -3,9 +3,10 @@ import asyncio
 import json
 from aiokafka import AIOKafkaConsumer
 from mongo_client import db
+import logging
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
-
+logging.basicConfig(level=logging.DEBUG)
 # Topics to consume
 KAFKA_TOPICS = [
     "user.registered",
