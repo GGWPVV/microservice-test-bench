@@ -17,6 +17,11 @@ from kafka_producer import publish_event, start_kafka_producer, stop_kafka_produ
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def on_startup():
@@ -50,7 +55,7 @@ def get_db():
     # POST /users - create new user
 @app.post("/users", status_code=201, response_model=UserCreateResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    print("UserCreate:", user)
+    logger.info("Registering new user: %s", user.username)
     hashed_password = pwd_context.hash(user.password)
     new_user = models.User(
         username=user.username,
@@ -63,10 +68,11 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     await publish_event("user.registered", {
-        "user_id": new_user.id,
+        "user_id": str(new_user.id),
         "username": new_user.username,
         "timestamp": str(datetime.utcnow())
     })
+    logger.info("user.registered published for %s", new_user.username)
 
     return {"message": "User created successfully", "user_name": new_user.username}
 
@@ -76,31 +82,25 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 from auth import create_jwt  # импорт функции
 
 @app.post("/login")
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    # Log received data
+async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     print("Received login data:", user_data)
-
-    # Find user by email
     user = db.query(User).filter(User.email == user_data.email).first()
     print("User found in database:", user)
-
-    # If user doesn't exist — return 401 Unauthorized
     if not user:
         print("User not found")
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    # Check password validity
     is_password_valid = pwd_context.verify(user_data.password, user.hashed_password)
     print("Password is valid:", is_password_valid)
-
     if not is_password_valid:
         print("Invalid password")
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    # Create JWT token
     token = create_jwt(user.id)
-    print("Generated token:", token)
-
+    logger.info("User %s logged in successfully", user.username)
+    await publish_event("user.logged_in", {
+        "user_id": str(user.id),
+        "username": user.username,
+        "timestamp": str(datetime.utcnow())
+    })
     return {"access_token": token, "token_type": "bearer"}
 
 

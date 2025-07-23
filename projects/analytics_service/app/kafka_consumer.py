@@ -6,7 +6,7 @@ from mongo_client import db
 import logging
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 # Topics to consume
 KAFKA_TOPICS = [
     "user.registered",
