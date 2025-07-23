@@ -14,8 +14,6 @@ app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
 from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
 logging.basicConfig(
-    level=logging.INFO,  
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     level=logging.DEBUG,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 )
