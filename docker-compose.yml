@@ -117,7 +117,7 @@ services:
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TOPIC=user.registered
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://mongouser:mongopass@mongo:27017/?authSource=admin
       - MONGO_DB=analytics_db
     networks:
       - app-network

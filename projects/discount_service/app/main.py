@@ -65,12 +65,13 @@ async def is_user_in_top(username: str) -> bool:
     400: {"description": "Invalid user data"},
 })
 async def get_discount(token: str = Depends(oauth2_scheme)):
-    redis = await get_redis() 
-    user_id = decode_token(token)
+    redis = await get_redis()
+
+    user_id = await decode_token(token) 
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user_info = get_user_info(token)
+    user_info = await get_user_info(token) 
     print("user_info from user_service:", user_info)
     if not user_info:
         raise HTTPException(status_code=401, detail="User info unavailable")
@@ -78,20 +79,25 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
     age = user_info.get("age")
     username = user_info.get("username")
     user_id = user_info.get("id")
+
     if username is None or age is None:
         raise HTTPException(status_code=400, detail="Invalid user data")
+
     cached_discount = await get_discount_from_cache(redis, username)
     if cached_discount:
         return {"username": username, "discount": cached_discount}
+
     discount = 0.0
     if age >= 40:
         discount += 0.1
-    if is_user_in_top(username):
+    if await is_user_in_top(username): 
         discount += 0.1
 
     await redis.set(f"discount:{username}", discount, ex=3600)
+
     await publish_event("discount.calculated", {
         "user_id": str(user_id),
+        "username": username,
         "discount": discount,
         "timestamp": str(datetime.utcnow())
     })

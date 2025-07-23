@@ -6,8 +6,15 @@ from mongo_client import db
 import logging
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
-logging.basicConfig(level=logging.ERROR)
-# Topics to consume
+logger = logging.getLogger("analytics_consumer")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler() 
+formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 KAFKA_TOPICS = [
     "user.registered",
     "user.logged_in",
@@ -21,16 +28,22 @@ async def consume():
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
         group_id="analytics_group"
     )
+
     await consumer.start()
+    logger.info("Kafka consumer started and subscribed to topics: %s", KAFKA_TOPICS)
+    logger.info("Waiting for Kafka messages...")
     try:
         async for msg in consumer:
+            logger.info("Message received!")
             try:
-                data = json.loads(msg.value.decode("utf-8"))
-                event_type = msg.topic
-                data["event_type"] = event_type  # Add event type to data
+                raw_value = msg.value.decode("utf-8")
+                data = json.loads(raw_value)
+                logger.info("Received event from topic '%s': %s", msg.topic, data)
+
                 await db.events.insert_one(data)
-                print(f"Stored event: {event_type} ->", data)
+                logger.info("Inserting data into MongoDB collection. DB: %s", db)
             except Exception as e:
-                print(f"Failed to process message: {e}")
+                logger.error("Failed to process Kafka message: %s", str(e))
     finally:
         await consumer.stop()
+        logger.info("Kafka consumer stopped")
