@@ -3,19 +3,19 @@ import os
 import json
 from datetime import datetime
 from aiokafka import AIOKafkaProducer
-import logging
 import asyncio
+from logger_config import setup_logger
 
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 _producer = None
-logger = logging.getLogger(__name__)
+logger = setup_logger("kafka_producer")
 
 
 async def start_kafka_producer(retries: int = 10, delay: int = 5):
     global _producer
     if _producer is None:
-        logger.info("Starting Kafka producer...")
+        logger.info({"event": "kafka_start", "message": "Starting Kafka producer..."})
         for attempt in range(retries):
             try:
                 _producer = AIOKafkaProducer(
@@ -23,32 +23,48 @@ async def start_kafka_producer(retries: int = 10, delay: int = 5):
                     value_serializer=lambda v: json.dumps(v).encode("utf-8")
                 )
                 await _producer.start()
-                logger.info("Kafka producer started")
+                logger.info({"event": "kafka_started", "message": "Kafka producer started"})
                 return
             except Exception as e:
-                logger.warning(f"Kafka not ready yet (attempt {attempt + 1}/{retries}): {e}")
+                logger.warning({
+                    "event": "kafka_retry",
+                    "attempt": attempt + 1,
+                    "error": str(e),
+                    "message": "Kafka not ready yet"
+                })
                 await asyncio.sleep(delay)
+        logger.error({"event": "kafka_fail", "message": "Kafka producer could not be started after retries"})
         raise RuntimeError("Kafka producer could not be started after retries")
 
 
 async def publish_event(topic: str, data: dict):
     if _producer is None:
+        logger.error({"event": "publish_event", "message": "Kafka producer not initialized"})
         raise RuntimeError("Kafka producer not initialized")
-    logger.debug(f"[DEBUG] Sending event to topic '{topic}': {data}")
     try:
         data["timestamp"] = str(datetime.utcnow())
         result = await _producer.send_and_wait(topic, data)
-        logger.info(f"Message sent to Kafka topic '{topic}': {data}")
+        logger.info({
+            "event": "kafka_publish",
+            "topic": topic,
+            "data": data,
+            "message": f"Message sent to Kafka topic '{topic}'"
+        })
         return result
     except Exception as e:
-        logger.exception(f"Failed to publish event to Kafka: {e}")
-
+        logger.error({
+            "event": "kafka_publish_error",
+            "topic": topic,
+            "data": data,
+            "error": str(e),
+            "message": "Failed to publish event to Kafka"
+        }, exc_info=True)
 
 
 async def stop_kafka_producer():
     global _producer
     if _producer:
-        logger.info("Stopping Kafka producer...")
+        logger.info({"event": "kafka_stop", "message": "Stopping Kafka producer..."})
         await _producer.stop()
         _producer = None
-        logger.info("Kafka producer stopped")
+        logger.info({"event": "kafka_stopped", "message": "Kafka producer stopped"})

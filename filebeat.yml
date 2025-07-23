@@ -4,15 +4,11 @@ filebeat.inputs:
       - /var/lib/docker/containers/*/*.log
     json.keys_under_root: true
     json.add_error_key: true
-    multiline.pattern: '^{'
-    multiline.negate: true
-    multiline.match: after
+    json.ignore_decoding_error: true
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
-  username: ""
-  password: ""
-  index: "microservices-logs"
+  index: "analytics-logs"
 
 setup.kibana:
   host: "kibana:5601"
