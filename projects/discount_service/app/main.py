@@ -1,29 +1,46 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-import requests
+import requests, logging, os 
 from typing import Optional
-import os 
 from redis_client import get_redis, get_discount_from_cache, set_discount_cache 
+from datetime import datetime
+from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
+
 
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
 scopes={"read:discount": "Read access to discount info"})
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def on_startup():
+    logging.info("App is starting up...")
+    await start_kafka_producer()
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    logging.info("App is shutting down...")
+    await stop_kafka_producer()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 
 
-def decode_token(token: str) -> Optional[str]:
+async def decode_token(token: str) -> Optional[str]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub")  # user_id
     except JWTError:
         return None
 
-def get_user_info(token: str):
+async def get_user_info(token: str):
     headers = {"Authorization": f"Bearer {token}"}
     try:
         response = requests.get("http://user_service:8000/user/me", headers=headers)
@@ -33,7 +50,7 @@ def get_user_info(token: str):
         print("User service error:", e)
     return None
 
-def is_user_in_top(username: str) -> bool:
+async def is_user_in_top(username: str) -> bool:
     try:
         response = requests.get("http://score-service:8000/leaderboard")
         if response.status_code == 200:
@@ -60,6 +77,7 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
 
     age = user_info.get("age")
     username = user_info.get("username")
+    user_id = user_info.get("id")
     if username is None or age is None:
         raise HTTPException(status_code=400, detail="Invalid user data")
     cached_discount = await get_discount_from_cache(redis, username)
@@ -72,6 +90,11 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
         discount += 0.1
 
     await redis.set(f"discount:{username}", discount, ex=3600)
+    await publish_event("discount.calculated", {
+        "user_id": str(user_id),
+        "discount": discount,
+        "timestamp": str(datetime.utcnow())
+    })
 
     return {"username": username, "discount": round(discount, 2)}
     

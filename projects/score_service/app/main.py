@@ -67,6 +67,7 @@ async def draw_score(
         "user_id": user_id,
         "username": username,
         "score": score_value
+        
     })
 
     # 4. Flag user as having rolled
