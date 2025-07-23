@@ -9,14 +9,24 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
 from database import SessionLocal, engine, Base
-import models
+import models, logging
 from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
-from kafka_producer import publish_event
+from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
 
 # создаём таблицы, если их ещё нет
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    logging.info("App is starting up...")
+    await start_kafka_producer()
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    logging.info("App is shutting down...")
+    await stop_kafka_producer()
 
 # включаем CORS (если надо)
 app.add_middleware(

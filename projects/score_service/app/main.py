@@ -8,11 +8,24 @@ from redis_client import get_redis, mark_rolled, has_rolled
 import models, database, json
 from user_client import get_user
 from kafka_producer import publish_event
+import logging
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
+from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
+logging.basicConfig(
+    level=logging.INFO,  
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+@app.on_event("startup")
+async def on_startup():
+    logging.info("App is starting up...")
+    await start_kafka_producer()
 
-
+@app.on_event("shutdown")
+async def on_shutdown():
+    logging.info("App is shutting down...")
+    await stop_kafka_producer()
 
 @app.post("/roll")
 async def draw_score(
@@ -72,7 +85,7 @@ async def get_leaderboard(
 ):
     cached = await redis.get("leaderboard_top10")
     if cached:
-        print("Cache hit")
+        logging.info("Leaderboard: Cache hit")
         return json.loads(cached)
 
     print("Cache miss — querying DB")
@@ -98,4 +111,5 @@ async def get_leaderboard(
 @app.delete("/leaderboard/cache")
 async def clear_leaderboard_cache(redis = Depends(get_redis)):
     await redis.delete("leaderboard_top10")
+    logging.info("Leaderboard cache cleared by user request")
     return {"detail": "Leaderboard cache cleared"}
