@@ -192,3 +192,18 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         "username": user.username,
         "age": user.age
     }
+@app.middleware("http")
+async def log_http_requests(request: Request, call_next):
+    logger.info({
+        "event": "http_request",
+        "method": request.method,
+        "url": str(request.url),
+        "headers": dict(request.headers),
+    })
+    response = await call_next(request)
+    logger.info({
+        "event": "http_response",
+        "status_code": response.status_code,
+        "url": str(request.url),
+    })
+    return response

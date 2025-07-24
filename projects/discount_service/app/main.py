@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-import requests, logging, os 
+import requests, os 
 from typing import Optional
 from redis_client import get_redis, get_discount_from_cache, set_discount_cache 
 from datetime import datetime
@@ -113,4 +113,18 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
 
     logger.info({"event": "discount_calculated", "username": username, "discount": discount})
     return {"username": username, "discount": round(discount, 2)}
-
+@app.middleware("http")
+async def log_http_requests(request: Request, call_next):
+    logger.info({
+        "event": "http_request",
+        "method": request.method,
+        "url": str(request.url),
+        "headers": dict(request.headers),
+    })
+    response = await call_next(request)
+    logger.info({
+        "event": "http_response",
+        "status_code": response.status_code,
+        "url": str(request.url),
+    })
+    return response
