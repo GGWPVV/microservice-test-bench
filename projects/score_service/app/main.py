@@ -4,15 +4,23 @@ import random
 from datetime import datetime
 from database import get_db
 from models import UserScore
-from redis_client import get_redis, mark_rolled, has_rolled
+import sys
+sys.path.insert(0, '/shared')
+from redis_client import get_redis, RedisCache
+from kafka_client import publish_event
+from logger_config import setup_logger
 import models, database, json
 from user_client import get_user
-from kafka_producer import publish_event
-from logger_config import setup_logger
 
-app = FastAPI()
+app = FastAPI(
+    title="Score Service API",
+    description="Microservice for score management and leaderboards",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 models.Base.metadata.create_all(bind=database.engine)
-from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
+from kafka_client import start_kafka_producer, stop_kafka_producer
 logger = setup_logger("score_service")
 http_logger = setup_logger("score_service")
 
@@ -26,7 +34,16 @@ async def on_shutdown():
     logger.info({"event": "shutdown", "message": "App is shutting down..."})
     await stop_kafka_producer()
 
-@app.post("/roll")
+@app.post("/roll",
+    tags=["Score"],
+    summary="Roll for score",
+    description="Generate a random score for authenticated user",
+    responses={
+        200: {"description": "Score generated successfully"},
+        400: {"description": "User already rolled"},
+        403: {"description": "Invalid token"}
+    }
+)
 async def draw_score(
     Authorization: str = Header(...), 
     db: Session = Depends(get_db)
@@ -44,7 +61,7 @@ async def draw_score(
     username = user_data["username"]
 
     # 2. Check if user has already rolled
-    if await has_rolled(redis, user_id):
+    if await RedisCache.exists(f"already_rolled:{user_id}"):
         logger.info({"event": "already_rolled", "user_id": user_id, "username": username})
         raise HTTPException(status_code=400, detail="You have already rolled.")
 
@@ -74,7 +91,7 @@ async def draw_score(
     })
 
     # 4. Flag user as having rolled
-    await mark_rolled(redis, user_id)
+    await RedisCache.set(f"already_rolled:{user_id}", "1", ttl=60*60*24*365)
 
     logger.info({"event": "roll_success", "user_id": user_id, "username": username, "score": score_value})
     return {
@@ -83,7 +100,14 @@ async def draw_score(
         "timestamp": new_score.created_at
     }
 
-@app.get("/leaderboard")
+@app.get("/leaderboard",
+    tags=["Leaderboard"],
+    summary="Get leaderboard",
+    description="Retrieve top 10 players leaderboard",
+    responses={
+        200: {"description": "Leaderboard retrieved successfully"}
+    }
+)
 async def get_leaderboard(
     db: Session = Depends(get_db),
     redis = Depends(get_redis),
@@ -120,9 +144,20 @@ async def clear_leaderboard_cache(redis = Depends(get_redis)):
     logger.info({"event": "leaderboard_cache_cleared"})
     return {"detail": "Leaderboard cache cleared"}
 
-@app.get("/health")
+@app.get("/health",
+    tags=["Health"],
+    summary="Health check",
+    description="Check service health status",
+    responses={
+        200: {"description": "Service is healthy"}
+    }
+)
 async def health_check():
-    return {"status": "healthy", "service": "score_service"}
+    return {
+        "status": "healthy", 
+        "service": "score_service",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):

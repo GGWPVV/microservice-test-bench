@@ -3,7 +3,13 @@ import uvicorn
 import asyncio
 from kafka_consumer import consume
 
-app = FastAPI()
+app = FastAPI(
+    title="Analytics Service API",
+    description="Microservice for analytics and event processing",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
 @app.get("/health")
 async def health_check():

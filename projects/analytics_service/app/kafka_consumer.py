@@ -3,6 +3,8 @@ import asyncio
 import json
 from aiokafka import AIOKafkaConsumer
 from mongo_client import db
+import sys
+sys.path.insert(0, '/shared')
 from logger_config import setup_logger
 
 logger = setup_logger("analytics_service")

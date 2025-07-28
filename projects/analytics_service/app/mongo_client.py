@@ -1,5 +1,7 @@
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
+import sys
+sys.path.insert(0, '/shared')
 from logger_config import setup_logger
 
 logger = setup_logger("mongo_client")

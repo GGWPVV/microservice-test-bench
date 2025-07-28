@@ -1,14 +1,13 @@
-# kafka_producer.py
 import os
 import json
+import asyncio
 from datetime import datetime
 from aiokafka import AIOKafkaProducer
-import asyncio
 from logger_config import setup_logger
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 _producer = None
-logger = setup_logger("kafka_producer")
+logger = setup_logger("kafka_client")
 
 async def start_kafka_producer(retries: int = 10, delay: int = 5):
     global _producer

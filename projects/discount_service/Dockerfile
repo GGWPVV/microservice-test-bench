@@ -6,13 +6,14 @@ WORKDIR /app
 RUN pip install --upgrade pip
 
 # Copy requirements
-COPY app/requirements.txt /app/requirements.txt
+COPY projects/discount_service/app/requirements.txt /app/requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy app
-COPY app /app
+COPY shared /shared
+COPY projects/discount_service/app /app
 
 EXPOSE 8000
 

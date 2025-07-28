@@ -3,14 +3,22 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import requests, os 
 from typing import Optional
-from redis_client import get_redis, get_discount_from_cache, set_discount_cache 
 from datetime import datetime
-from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
+import sys
+sys.path.insert(0, '/shared')
+from redis_client import get_redis, RedisCache
+from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 from logger_config import setup_logger
 
 
 
-app = FastAPI()
+app = FastAPI(
+    title="Discount Service API",
+    description="Microservice for discount calculation based on user criteria",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
 scopes={"read:discount": "Read access to discount info"})
 logger = setup_logger("discount_service")
@@ -64,10 +72,16 @@ async def is_user_in_top(username: str) -> bool:
         logger.error({"event": "leaderboard_request_error", "error": str(e)})
     return False
 
-@app.post("/discount", responses={
-    401: {"description": "Unauthorized"},
-    400: {"description": "Invalid user data"},
-})
+@app.post("/discount",
+    tags=["Discount"],
+    summary="Calculate discount",
+    description="Calculate user discount based on age and leaderboard position",
+    responses={
+        200: {"description": "Discount calculated successfully"},
+        400: {"description": "Invalid user data"},
+        401: {"description": "Unauthorized"}
+    }
+)
 async def get_discount(token: str = Depends(oauth2_scheme)):
     logger.info({"event": "discount_request", "token": token})
     redis = await get_redis()
@@ -91,10 +105,10 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
         logger.warning({"event": "discount_invalid_user_data", "user_info": user_info})
         raise HTTPException(status_code=400, detail="Invalid user data")
 
-    cached_discount = await get_discount_from_cache(redis, username)
+    cached_discount = await RedisCache.get(f"discount:{username}")
     if cached_discount:
         logger.info({"event": "discount_cache_return", "username": username, "discount": cached_discount})
-        return {"username": username, "discount": cached_discount}
+        return {"username": username, "discount": float(cached_discount)}
 
     discount = 0.0
     if age >= 40:
@@ -102,7 +116,7 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
     if await is_user_in_top(username):
         discount += 0.1
 
-    await set_discount_cache(redis, username, discount, ttl=3600)
+    await RedisCache.set(f"discount:{username}", discount, ttl=3600)
 
     await publish_event("discount.calculated", {
         "user_id": str(user_id),
@@ -114,9 +128,20 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
     logger.info({"event": "discount_calculated", "username": username, "discount": discount})
     return {"username": username, "discount": round(discount, 2)}
 
-@app.get("/health")
+@app.get("/health",
+    tags=["Health"],
+    summary="Health check",
+    description="Check service health status",
+    responses={
+        200: {"description": "Service is healthy"}
+    }
+)
 async def health_check():
-    return {"status": "healthy", "service": "discount_service"}
+    return {
+        "status": "healthy", 
+        "service": "discount_service",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):

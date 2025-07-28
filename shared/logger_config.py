@@ -1,10 +1,8 @@
-# logger_config.py
 import logging
 import os
 import sys
 import json
 from datetime import datetime
-
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -25,17 +23,12 @@ class JsonFormatter(logging.Formatter):
 
         return json.dumps(log_record)
 
-
 def setup_logger(name: str = __name__) -> logging.Logger:
     logger = logging.getLogger(name)
-
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     logger.setLevel(getattr(logging, log_level, logging.INFO))
-
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
-
     if not logger.handlers:
         logger.addHandler(handler)
-
     return logger

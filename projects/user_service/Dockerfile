@@ -6,16 +6,17 @@ WORKDIR /app
 RUN pip install --upgrade pip
 
 # Copy requirements
-COPY app/requirements.txt /app/requirements.txt
+COPY projects/user_service/app/requirements.txt /app/requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 
-# Copy app
-COPY app /app
-COPY alembic.ini /app/alembic.ini
-COPY alembic /app/alembic
+# Copy shared utilities
+COPY shared /shared
+COPY projects/user_service/app /app
+COPY projects/user_service/alembic.ini /app/alembic.ini
+COPY projects/user_service/alembic /app/alembic
 
 EXPOSE 8000
 

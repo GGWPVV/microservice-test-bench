@@ -7,16 +7,24 @@ from typing import List
 from uuid import UUID
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
+import sys
+sys.path.insert(0, '/shared')
 from logger_config import setup_logger
 
 from database import SessionLocal, engine, Base
 import models
 from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
-from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
+from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="User Service API",
+    description="Microservice for user management with authentication",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
 logger = setup_logger("user_service")  
 
@@ -46,7 +54,18 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/users", status_code=201, response_model=UserCreateResponse)
+@app.post("/users", 
+    status_code=201, 
+    response_model=UserCreateResponse,
+    tags=["Users"],
+    summary="Create new user",
+    description="Register a new user in the system",
+    responses={
+        201: {"description": "User created successfully"},
+        422: {"description": "Validation error"},
+        500: {"description": "Internal server error"}
+    }
+)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     logger.info({
         "event": "create_user_request",
@@ -90,7 +109,15 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 from auth import create_jwt
 
-@app.post("/login")
+@app.post("/login",
+    tags=["Authentication"],
+    summary="User login",
+    description="Authenticate user and return JWT token",
+    responses={
+        200: {"description": "Login successful"},
+        401: {"description": "Invalid credentials"}
+    }
+)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     logger.info({
         "event": "login_attempt",
@@ -128,7 +155,15 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     })
     return {"access_token": token, "token_type": "bearer"}
 
-@app.get("/users", response_model=List[UserListOut])
+@app.get("/users", 
+    response_model=List[UserListOut],
+    tags=["Users"],
+    summary="Get all users",
+    description="Retrieve list of all registered users",
+    responses={
+        200: {"description": "List of users retrieved successfully"}
+    }
+)
 def get_users(db: Session = Depends(get_db)):
     logger.info({"event": "get_users", "message": "Fetching all users"})
     users = db.query(models.User).all()
@@ -172,7 +207,16 @@ def create_jwt(user_id: str):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
-@app.get("/user/me")
+@app.get("/user/me",
+    tags=["Authentication"],
+    summary="Get current user",
+    description="Get current authenticated user information",
+    responses={
+        200: {"description": "Current user information"},
+        401: {"description": "Invalid or expired token"},
+        404: {"description": "User not found"}
+    }
+)
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -192,9 +236,20 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         "username": user.username,
         "age": user.age
     }
-@app.get("/health")
+@app.get("/health", 
+    response_model=dict,
+    summary="Health Check",
+    description="Check if the service is healthy",
+    responses={
+        200: {"description": "Service is healthy", "content": {"application/json": {"example": {"status": "healthy", "service": "user_service", "timestamp": "2025-01-01T00:00:00Z"}}}}
+    }
+)
 async def health_check():
-    return {"status": "healthy", "service": "user_service"}
+    return {
+        "status": "healthy", 
+        "service": "user_service",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):

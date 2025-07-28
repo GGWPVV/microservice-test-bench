@@ -2,7 +2,8 @@ version: "3.8"
 services:
   user_service:
     build:
-      context: ./projects/user_service
+      context: .
+      dockerfile: ./projects/user_service/Dockerfile
     volumes:
       - ./projects/user_service/alembic/versions:/app/alembic/versions
     ports:
@@ -18,7 +19,8 @@ services:
 
   discount_service:
     build:
-      context: ./projects/discount_service
+      context: .
+      dockerfile: ./projects/discount_service/Dockerfile
     ports:
       - "8002:8000"
     container_name: discount_service
@@ -56,8 +58,9 @@ services:
     networks:
       - app-network
   score-service:
-    build: 
-      context: ./projects/score_service
+    build:
+      context: .
+      dockerfile: ./projects/score_service/dockerfile
     volumes:
       -  ./projects/score_service/alembic/versions:/app/alembic/versions
     environment:
@@ -110,7 +113,8 @@ services:
       - app-network
   analytics_service:
     build:
-      context: ./projects/analytics_service
+      context: .
+      dockerfile: ./projects/analytics_service/Dockerfile
     ports:
       - "8004:8000"
     depends_on:
