@@ -14,6 +14,7 @@ app = FastAPI()
 models.Base.metadata.create_all(bind=database.engine)
 from kafka_producer import publish_event, start_kafka_producer, stop_kafka_producer
 logger = setup_logger("score_service")
+http_logger = setup_logger("score_service")
 
 @app.on_event("startup")
 async def on_startup():
@@ -119,18 +120,16 @@ async def clear_leaderboard_cache(redis = Depends(get_redis)):
     logger.info({"event": "leaderboard_cache_cleared"})
     return {"detail": "Leaderboard cache cleared"}
 
-logger = setup_logger("http_logger")
-
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
-    logger.info({
+    http_logger.info({
         "event": "http_request",
         "method": request.method,
         "url": str(request.url),
         "headers": dict(request.headers),
     })
     response = await call_next(request)
-    logger.info({
+    http_logger.info({
         "event": "http_response",
         "status_code": response.status_code,
         "url": str(request.url),

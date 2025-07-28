@@ -5,7 +5,7 @@ from aiokafka import AIOKafkaConsumer
 from mongo_client import db
 from logger_config import setup_logger
 
-logger = setup_logger("analytics_consumer")
+logger = setup_logger("analytics_service")
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 

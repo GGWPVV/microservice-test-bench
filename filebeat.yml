@@ -1,14 +1,38 @@
 filebeat.inputs:
   - type: container
     paths:
-      - /var/lib/docker/containers/*/*.log
+      - /var/lib/docker/containers/*/*-json.log
     json.keys_under_root: true
     json.add_error_key: true
     json.ignore_decoding_error: true
+    processors:
+      - decode_json_fields:
+          fields: ["log"]
+          target: ""
+          overwrite_keys: true
+          add_error_key: true
+      - drop_fields:
+          fields: ["log"]
+      - rename:
+          fields:
+            - from: "process"
+              to: "app_process"
+            - from: "service"
+              to: "app_service"
+          ignore_missing: true
+
+setup.template.name: "analytics-logs"
+setup.template.pattern: "analytics-logs*"
+setup.template.enabled: true
+setup.template.settings:
+  index.mapping.total_fields.limit: 2000
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
-  index: "analytics-logs"
+  index: "analytics-logs-%{+yyyy.MM.dd}"
 
 setup.kibana:
   host: "kibana:5601"
+
+logging.level: debug
+logging.selectors: ["elasticsearch", "publish"]

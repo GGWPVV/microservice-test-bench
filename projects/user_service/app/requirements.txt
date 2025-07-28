@@ -9,4 +9,3 @@ pydantic[email]
 python-jose[cryptography]
 redis>=5.0.1
 aiokafka
--e ../../../../common

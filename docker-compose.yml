@@ -150,6 +150,7 @@ services:
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a7a6311933d3503b89bc2dbc36572c33a7a6311933d3503b89bc2dbc36572c33
     ports:
       - "5601:5601"
     depends_on:
@@ -157,20 +158,19 @@ services:
     networks:
       - app-network
   filebeat:
-    image: docker.elastic.co/beats/filebeat:8.13.2
+    build:
+      context: .
+      dockerfile: Dockerfile.filebeat
     container_name: filebeat
     user: root
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
     depends_on:
       - elasticsearch
       - kibana
-
-
-
-  
+    networks:
+      - app-network
 
 volumes:
   userdb_data:
@@ -181,4 +181,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-    

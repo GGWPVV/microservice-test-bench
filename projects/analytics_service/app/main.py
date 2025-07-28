@@ -28,3 +28,5 @@ async def main():
 if __name__ == "__main__":
     logger.info({"event": "main_run", "message": "Running analytics main loop"})
     asyncio.run(main())
+    
+
