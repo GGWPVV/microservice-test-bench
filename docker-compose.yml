@@ -111,6 +111,8 @@ services:
   analytics_service:
     build:
       context: ./projects/analytics_service
+    ports:
+      - "8004:8000"
     depends_on:
       - kafka
       - mongo

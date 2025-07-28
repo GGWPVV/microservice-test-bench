@@ -1,3 +1,4 @@
 aiokafka
 motor  # async MongoDB client
 uvicorn
+fastapi

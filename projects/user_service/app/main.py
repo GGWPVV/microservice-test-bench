@@ -192,6 +192,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         "username": user.username,
         "age": user.age
     }
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "user_service"}
+
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
     logger.info({

@@ -120,6 +120,10 @@ async def clear_leaderboard_cache(redis = Depends(get_redis)):
     logger.info({"event": "leaderboard_cache_cleared"})
     return {"detail": "Leaderboard cache cleared"}
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "score_service"}
+
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
     http_logger.info({

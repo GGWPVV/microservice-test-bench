@@ -113,6 +113,11 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
 
     logger.info({"event": "discount_calculated", "username": username, "discount": discount})
     return {"username": username, "discount": round(discount, 2)}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "discount_service"}
+
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
     logger.info({
