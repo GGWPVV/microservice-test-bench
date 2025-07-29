@@ -203,15 +203,34 @@ async def get_discount(token: str = Depends(oauth2_scheme)):
                     }
                 }
             }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            }
         }
     }
 )
 async def health_check():
-    return {
-        "status": "healthy", 
-        "service": "discount_service",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    try:
+        return {
+            "status": "healthy", 
+            "service": "discount_service",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error({
+            "event": "health_check_error",
+            "error": str(e),
+            "message": "Health check failed"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):

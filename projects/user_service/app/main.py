@@ -299,7 +299,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Database connection error"
+                        "detail": "Internal server error"
                     }
                 }
             }
@@ -404,7 +404,7 @@ def create_jwt(user_id: str):
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Database connection error"
+                        "detail": "Internal server error"
                     }
                 }
             }
@@ -491,7 +491,7 @@ async def health_check():
             "error": str(e),
             "message": "Health check failed"
         }, exc_info=True)
-        raise HTTPException(status_code=500, detail="Service health check failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):

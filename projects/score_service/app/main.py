@@ -80,6 +80,17 @@ async def on_shutdown():
                 }
             }
         },
+        422: {
+            "description": "Validation error",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Authorization header required"
+                    }
+                }
+            }
+        },
         500: {
             "description": "Internal server error",
             "model": InternalErrorResponse,
@@ -191,7 +202,7 @@ async def draw_score(
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Database connection error"
+                        "detail": "Internal server error"
                     }
                 }
             }
@@ -259,7 +270,7 @@ async def get_leaderboard(
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Redis connection error"
+                        "detail": "Internal server error"
                     }
                 }
             }
@@ -297,15 +308,34 @@ async def clear_leaderboard_cache(redis = Depends(get_redis)):
                     }
                 }
             }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            }
         }
     }
 )
 async def health_check():
-    return {
-        "status": "healthy", 
-        "service": "score_service",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    try:
+        return {
+            "status": "healthy", 
+            "service": "score_service",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error({
+            "event": "health_check_error",
+            "error": str(e),
+            "message": "Health check failed"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
