@@ -9,7 +9,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# Проверка подключения к базе
 try:
     with engine.connect() as connection:
         print(" Successful connection to userdb.")

@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends , Request
+from fastapi import FastAPI, HTTPException, Depends , Request, Form
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer
-from typing import List
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing import List, Annotated
 from uuid import UUID
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
@@ -13,7 +13,12 @@ from logger_config import setup_logger
 
 from database import SessionLocal, engine, Base
 import models
-from models import UserCreate, UserCreateResponse, UserLogin, User, UserListOut
+from models import User
+from schemas import (
+    UserCreate, UserCreateResponse, UserLogin, TokenResponse, 
+    UserListOut, CurrentUserResponse, ErrorResponse, 
+    ValidationErrorResponse, InternalErrorResponse, HealthResponse
+)
 from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 
 Base.metadata.create_all(bind=engine)
@@ -61,9 +66,46 @@ def get_db():
     summary="Create new user",
     description="Register a new user in the system",
     responses={
-        201: {"description": "User created successfully"},
-        422: {"description": "Validation error"},
-        500: {"description": "Internal server error"}
+        201: {
+            "description": "User created successfully",
+            "model": UserCreateResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "User created successfully",
+                        "user_name": "john_doe"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Validation error",
+            "model": ValidationErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "email"],
+                                "msg": "field required",
+                                "type": "value_error.missing"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            }
+        }
     }
 )
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -107,37 +149,134 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
         }, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.post("/users/form", 
+    status_code=201, 
+    response_model=UserCreateResponse,
+    tags=["Users"],
+    summary="Create new user (Form)",
+    description="Register a new user in the system using form data",
+    responses={
+        201: {
+            "description": "User created successfully",
+            "model": UserCreateResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "User created successfully",
+                        "user_name": "john_doe"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Validation error",
+            "model": ValidationErrorResponse
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse
+        }
+    }
+)
+async def create_user_form(
+    username: Annotated[str, Form(description="Username (3-50 characters)", example="john_doe")],
+    email: Annotated[str, Form(description="Valid email address", example="john@example.com")],
+    password: Annotated[str, Form(description="Password (min 6 characters)", example="password123")],
+    age: Annotated[int, Form(description="Age (13-120)", example=25)],
+    city: Annotated[str, Form(description="City name", example="New York")],
+    db: Session = Depends(get_db)
+):
+    # Создаем объект UserCreate для валидации
+    user_data = UserCreate(
+        username=username,
+        email=email,
+        password=password,
+        age=age,
+        city=city
+    )
+    return await create_user(user_data, db)
+
 from auth import create_jwt
 
 @app.post("/login",
+    response_model=TokenResponse,
     tags=["Authentication"],
     summary="User login",
     description="Authenticate user and return JWT token",
     responses={
-        200: {"description": "Login successful"},
-        401: {"description": "Invalid credentials"}
+        200: {
+            "description": "Login successful",
+            "model": TokenResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGYzYjEyNi04YmVjLTRjZTMtOTE5Mi1jOGE5NDRkZWU5OGIiLCJleHAiOjE3NTM3MzgyMTF9.h8c9_KIp-yPhRC0PmPfBDiNJc39tI1UtO0mSbaUY-Ug",
+                        "token_type": "bearer"
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Invalid credentials",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Validation error",
+            "model": ValidationErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "username"],
+                                "msg": "field required",
+                                "type": "value_error.missing"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            }
+        }
     }
 )
-async def login(user_data: UserLogin, db: Session = Depends(get_db)):
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
     logger.info({
         "event": "login_attempt",
-        "email": user_data.email,
+        "email": form_data.username,
         "message": "Login attempt"
     })
-    user = db.query(User).filter(User.email == user_data.email).first()
+    user = db.query(User).filter(User.email == form_data.username).first()
     if not user:
         logger.warning({
             "event": "login_failed",
-            "email": user_data.email,
+            "email": form_data.username,
             "message": "User not found"
         })
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    is_password_valid = pwd_context.verify(user_data.password, user.hashed_password)
+    is_password_valid = pwd_context.verify(form_data.password, user.hashed_password)
     if not is_password_valid:
         logger.warning({
             "event": "login_failed",
             "username": user.username,
-            "email": user_data.email,
+            "email": form_data.username,
             "message": "Invalid password"
         })
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -161,13 +300,51 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     summary="Get all users",
     description="Retrieve list of all registered users",
     responses={
-        200: {"description": "List of users retrieved successfully"}
+        200: {
+            "description": "List of users retrieved successfully",
+            "model": List[UserListOut],
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "username": "john_doe",
+                            "age": 25,
+                            "city": "New York"
+                        },
+                        {
+                            "username": "jane_smith",
+                            "age": 30,
+                            "city": "Los Angeles"
+                        }
+                    ]
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Database connection error"
+                    }
+                }
+            }
+        }
     }
 )
 def get_users(db: Session = Depends(get_db)):
-    logger.info({"event": "get_users", "message": "Fetching all users"})
-    users = db.query(models.User).all()
-    return users
+    try:
+        logger.info({"event": "get_users", "message": "Fetching all users"})
+        users = db.query(models.User).all()
+        return users
+    except Exception as e:
+        logger.error({
+            "event": "get_users_error",
+            "error": str(e),
+            "message": "Error fetching users"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/users/{user_id}", include_in_schema=False)
 def get_user(user_id: UUID, db: Session = Depends(get_db)):
@@ -208,13 +385,57 @@ def create_jwt(user_id: str):
     return token
 
 @app.get("/user/me",
+    response_model=CurrentUserResponse,
     tags=["Authentication"],
     summary="Get current user",
     description="Get current authenticated user information",
     responses={
-        200: {"description": "Current user information"},
-        401: {"description": "Invalid or expired token"},
-        404: {"description": "User not found"}
+        200: {
+            "description": "Current user information",
+            "model": CurrentUserResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "fdf3b126-8bec-4ce3-9192-c8a944dee98b",
+                        "username": "john_doe",
+                        "age": 25
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Invalid or expired token",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid token"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "User not found",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "User not found"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Database connection error"
+                    }
+                }
+            }
+        }
     }
 )
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -225,23 +446,52 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        logger.error({
+            "event": "get_current_user_error",
+            "error": str(e),
+            "message": "Error processing token"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    print(f"Returning user info: {{'id': str(user.id), 'username': user.username, 'age': user.age}}")
-
-    return {
-        "id": str(user.id),
-        "username": user.username,
-        "age": user.age
-    }
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "id": str(user.id),
+            "username": user.username,
+            "age": user.age
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error({
+            "event": "get_current_user_db_error",
+            "user_id": user_id,
+            "error": str(e),
+            "message": "Database error fetching user"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 @app.get("/health", 
-    response_model=dict,
+    response_model=HealthResponse,
     summary="Health Check",
     description="Check if the service is healthy",
     responses={
-        200: {"description": "Service is healthy", "content": {"application/json": {"example": {"status": "healthy", "service": "user_service", "timestamp": "2025-01-01T00:00:00Z"}}}}
+        200: {
+            "description": "Service is healthy",
+            "model": HealthResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "healthy",
+                        "service": "user_service",
+                        "timestamp": "2025-01-01T00:00:00Z"
+                    }
+                }
+            }
+        }
     }
 )
 async def health_check():
