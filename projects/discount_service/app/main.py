@@ -9,6 +9,10 @@ sys.path.insert(0, '/shared')
 from redis_client import get_redis, RedisCache
 from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 from logger_config import setup_logger
+from schemas import (
+    DiscountResponse, ErrorResponse, InvalidUserDataError, 
+    InternalErrorResponse, HealthResponse
+)
 
 
 
@@ -73,67 +77,133 @@ async def is_user_in_top(username: str) -> bool:
     return False
 
 @app.post("/discount",
+    response_model=DiscountResponse,
     tags=["Discount"],
     summary="Calculate discount",
     description="Calculate user discount based on age and leaderboard position",
     responses={
-        200: {"description": "Discount calculated successfully"},
-        400: {"description": "Invalid user data"},
-        401: {"description": "Unauthorized"}
+        200: {
+            "description": "Discount calculated successfully",
+            "model": DiscountResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "username": "john_doe",
+                        "discount": 0.2
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid user data",
+            "model": InvalidUserDataError,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid user data"
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid token"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            }
+        }
     }
 )
 async def get_discount(token: str = Depends(oauth2_scheme)):
-    logger.info({"event": "discount_request", "token": token})
-    redis = await get_redis()
+    try:
+        logger.info({"event": "discount_request", "token": token})
+        redis = await get_redis()
 
-    user_id = await decode_token(token)
-    if not user_id:
-        logger.warning({"event": "discount_invalid_token", "token": token})
-        raise HTTPException(status_code=401, detail="Invalid token")
+        user_id = await decode_token(token)
+        if not user_id:
+            logger.warning({"event": "discount_invalid_token", "token": token})
+            raise HTTPException(status_code=401, detail="Invalid token")
 
-    user_info = await get_user_info(token)
-    logger.info({"event": "user_info_received", "user_info": user_info})
-    if not user_info:
-        logger.warning({"event": "discount_user_info_unavailable", "token": token})
-        raise HTTPException(status_code=401, detail="User info unavailable")
+        user_info = await get_user_info(token)
+        logger.info({"event": "user_info_received", "user_info": user_info})
+        if not user_info:
+            logger.warning({"event": "discount_user_info_unavailable", "token": token})
+            raise HTTPException(status_code=401, detail="User info unavailable")
 
-    age = user_info.get("age")
-    username = user_info.get("username")
-    user_id = user_info.get("id")
+        age = user_info.get("age")
+        username = user_info.get("username")
+        user_id = user_info.get("id")
 
-    if username is None or age is None:
-        logger.warning({"event": "discount_invalid_user_data", "user_info": user_info})
-        raise HTTPException(status_code=400, detail="Invalid user data")
+        if username is None or age is None:
+            logger.warning({"event": "discount_invalid_user_data", "user_info": user_info})
+            raise HTTPException(status_code=400, detail="Invalid user data")
 
-    cached_discount = await RedisCache.get(f"discount:{username}")
-    if cached_discount:
-        logger.info({"event": "discount_cache_return", "username": username, "discount": cached_discount})
-        return {"username": username, "discount": float(cached_discount)}
+        cached_discount = await RedisCache.get(f"discount:{username}")
+        if cached_discount:
+            logger.info({"event": "discount_cache_return", "username": username, "discount": cached_discount})
+            return {"username": username, "discount": float(cached_discount)}
 
-    discount = 0.0
-    if age >= 40:
-        discount += 0.1
-    if await is_user_in_top(username):
-        discount += 0.1
+        discount = 0.0
+        if age >= 40:
+            discount += 0.1
+        if await is_user_in_top(username):
+            discount += 0.1
 
-    await RedisCache.set(f"discount:{username}", discount, ttl=3600)
+        await RedisCache.set(f"discount:{username}", discount, ttl=3600)
 
-    await publish_event("discount.calculated", {
-        "user_id": str(user_id),
-        "username": username,
-        "discount": discount,
-        "timestamp": str(datetime.utcnow())
-    })
+        await publish_event("discount.calculated", {
+            "user_id": str(user_id),
+            "username": username,
+            "discount": discount,
+            "timestamp": str(datetime.utcnow())
+        })
 
-    logger.info({"event": "discount_calculated", "username": username, "discount": discount})
-    return {"username": username, "discount": round(discount, 2)}
+        logger.info({"event": "discount_calculated", "username": username, "discount": discount})
+        return {"username": username, "discount": round(discount, 2)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error({
+            "event": "discount_error",
+            "error": str(e),
+            "message": "Error calculating discount"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/health",
+    response_model=HealthResponse,
     tags=["Health"],
     summary="Health check",
     description="Check service health status",
     responses={
-        200: {"description": "Service is healthy"}
+        200: {
+            "description": "Service is healthy",
+            "model": HealthResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "healthy",
+                        "service": "discount_service",
+                        "timestamp": "2025-01-01T12:00:00Z"
+                    }
+                }
+            }
+        }
     }
 )
 async def health_check():

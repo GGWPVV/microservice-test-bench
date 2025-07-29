@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 import uvicorn
 import asyncio
+from datetime import datetime
 from kafka_consumer import consume
+from schemas import HealthResponse
 
 app = FastAPI(
     title="Analytics Service API",
@@ -11,9 +13,33 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-@app.get("/health")
+@app.get("/health",
+    response_model=HealthResponse,
+    tags=["Health"],
+    summary="Health check",
+    description="Check service health status",
+    responses={
+        200: {
+            "description": "Service is healthy",
+            "model": HealthResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "healthy",
+                        "service": "analytics_service",
+                        "timestamp": "2025-01-01T12:00:00Z"
+                    }
+                }
+            }
+        }
+    }
+)
 async def health_check():
-    return {"status": "healthy", "service": "analytics_service"}
+    return {
+        "status": "healthy", 
+        "service": "analytics_service",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 async def start_services():
     # Start Kafka consumer in background
