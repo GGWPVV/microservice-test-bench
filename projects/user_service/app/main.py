@@ -89,6 +89,11 @@ def get_db():
                                 "loc": ["body", "email"],
                                 "msg": "field required",
                                 "type": "value_error.missing"
+                            },
+                            {
+                                "loc": ["body", "age"],
+                                "msg": "ensure this value is greater than or equal to 13",
+                                "type": "value_error.number.not_ge"
                             }
                         ]
                     }
@@ -149,53 +154,6 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
         }, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.post("/users/form", 
-    status_code=201, 
-    response_model=UserCreateResponse,
-    tags=["Users"],
-    summary="Create new user (Form)",
-    description="Register a new user in the system using form data",
-    responses={
-        201: {
-            "description": "User created successfully",
-            "model": UserCreateResponse,
-            "content": {
-                "application/json": {
-                    "example": {
-                        "message": "User created successfully",
-                        "user_name": "john_doe"
-                    }
-                }
-            }
-        },
-        422: {
-            "description": "Validation error",
-            "model": ValidationErrorResponse
-        },
-        500: {
-            "description": "Internal server error",
-            "model": InternalErrorResponse
-        }
-    }
-)
-async def create_user_form(
-    username: Annotated[str, Form(description="Username (3-50 characters)", example="john_doe")],
-    email: Annotated[str, Form(description="Valid email address", example="john@example.com")],
-    password: Annotated[str, Form(description="Password (min 6 characters)", example="password123")],
-    age: Annotated[int, Form(description="Age (13-120)", example=25)],
-    city: Annotated[str, Form(description="City name", example="New York")],
-    db: Session = Depends(get_db)
-):
-    # Создаем объект UserCreate для валидации
-    user_data = UserCreate(
-        username=username,
-        email=email,
-        password=password,
-        age=age,
-        city=city
-    )
-    return await create_user(user_data, db)
-
 from auth import create_jwt
 
 @app.post("/login",
@@ -238,6 +196,11 @@ from auth import create_jwt
                                 "loc": ["body", "username"],
                                 "msg": "field required",
                                 "type": "value_error.missing"
+                            },
+                            {
+                                "loc": ["body", "password"],
+                                "msg": "field required",
+                                "type": "value_error.missing"
                             }
                         ]
                     }
@@ -258,41 +221,51 @@ from auth import create_jwt
     }
 )
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    logger.info({
-        "event": "login_attempt",
-        "email": form_data.username,
-        "message": "Login attempt"
-    })
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user:
-        logger.warning({
-            "event": "login_failed",
+    try:
+        logger.info({
+            "event": "login_attempt",
             "email": form_data.username,
-            "message": "User not found"
+            "message": "Login attempt"
         })
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    is_password_valid = pwd_context.verify(form_data.password, user.hashed_password)
-    if not is_password_valid:
-        logger.warning({
-            "event": "login_failed",
+        user = db.query(User).filter(User.email == form_data.username).first()
+        if not user:
+            logger.warning({
+                "event": "login_failed",
+                "email": form_data.username,
+                "message": "User not found"
+            })
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        is_password_valid = pwd_context.verify(form_data.password, user.hashed_password)
+        if not is_password_valid:
+            logger.warning({
+                "event": "login_failed",
+                "username": user.username,
+                "email": form_data.username,
+                "message": "Invalid password"
+            })
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        token = create_jwt(user.id)
+        logger.info({
+            "event": "login_success",
+            "user_id": str(user.id),
             "username": user.username,
-            "email": form_data.username,
-            "message": "Invalid password"
+            "message": "User logged in successfully"
         })
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_jwt(user.id)
-    logger.info({
-        "event": "login_success",
-        "user_id": str(user.id),
-        "username": user.username,
-        "message": "User logged in successfully"
-    })
-    await publish_event("user.logged_in", {
-        "user_id": str(user.id),
-        "username": user.username,
-        "timestamp": str(datetime.utcnow())
-    })
-    return {"access_token": token, "token_type": "bearer"}
+        await publish_event("user.logged_in", {
+            "user_id": str(user.id),
+            "username": user.username,
+            "timestamp": str(datetime.utcnow())
+        })
+        return {"access_token": token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error({
+            "event": "login_error",
+            "error": str(e),
+            "message": "Error during login"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/users", 
     response_model=List[UserListOut],
@@ -491,15 +464,34 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                     }
                 }
             }
+        },
+        500: {
+            "description": "Internal server error",
+            "model": InternalErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Service health check failed"
+                    }
+                }
+            }
         }
     }
 )
 async def health_check():
-    return {
-        "status": "healthy", 
-        "service": "user_service",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    try:
+        return {
+            "status": "healthy", 
+            "service": "user_service",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error({
+            "event": "health_check_error",
+            "error": str(e),
+            "message": "Health check failed"
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Service health check failed")
 
 @app.middleware("http")
 async def log_http_requests(request: Request, call_next):
