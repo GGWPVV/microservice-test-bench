@@ -4,11 +4,12 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from models import Base, User  
 import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
+from database import Base
+from models import User  # Импортируем модели для автогенерации
 
 
 # this is the Alembic Config object, which provides

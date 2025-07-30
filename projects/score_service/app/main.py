@@ -24,7 +24,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
-models.Base.metadata.create_all(bind=database.engine)
+# models.Base.metadata.create_all(bind=database.engine)  # Используем миграции вместо этого
 from kafka_client import start_kafka_producer, stop_kafka_producer
 logger = setup_logger("score_service")
 http_logger = setup_logger("score_service")

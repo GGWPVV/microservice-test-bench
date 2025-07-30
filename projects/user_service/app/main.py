@@ -21,7 +21,7 @@ from schemas import (
 )
 from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Используем миграции вместо этого
 
 app = FastAPI(
     title="User Service API",
