@@ -16,7 +16,6 @@ Unit tests for the User Service microservice covering authentication, user manag
 ### Install Dependencies
 ```bash
 pip install -r requirements.txt
-pip install email-validator
 ```
 
 ### Run All Tests

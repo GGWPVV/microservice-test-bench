@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends , Request, Form
+from fastapi import FastAPI, HTTPException, Depends , Request
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
@@ -193,7 +193,7 @@ from auth import create_jwt
                     "example": {
                         "detail": [
                             {
-                                "loc": ["body", "username"],
+                                "loc": ["body", "email"],
                                 "msg": "field required",
                                 "type": "value_error.missing"
                             },
@@ -220,27 +220,27 @@ from auth import create_jwt
         }
     }
 )
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     try:
         logger.info({
             "event": "login_attempt",
-            "email": form_data.username,
+            "email": user_data.email,
             "message": "Login attempt"
         })
-        user = db.query(User).filter(User.email == form_data.username).first()
+        user = db.query(User).filter(User.email == user_data.email).first()
         if not user:
             logger.warning({
                 "event": "login_failed",
-                "email": form_data.username,
+                "email": user_data.email,
                 "message": "User not found"
             })
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        is_password_valid = pwd_context.verify(form_data.password, user.hashed_password)
+        is_password_valid = pwd_context.verify(user_data.password, user.hashed_password)
         if not is_password_valid:
             logger.warning({
                 "event": "login_failed",
                 "username": user.username,
-                "email": form_data.username,
+                "email": user_data.email,
                 "message": "Invalid password"
             })
             raise HTTPException(status_code=401, detail="Invalid credentials")
