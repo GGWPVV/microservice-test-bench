@@ -9,7 +9,6 @@ from database import Base
 
 
 
-# SQLAlchemy модель для базы
 class User(Base):
     __tablename__ = "users"
 

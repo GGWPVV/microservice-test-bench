@@ -7,7 +7,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
 from database import Base
-from models import UserScore  # Импортируем модели для автогенерации
+from models import UserScore  # Importing models for autogeneration
 
 
 config = context.config

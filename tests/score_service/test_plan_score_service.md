@@ -2,7 +2,7 @@
 ---
 
 
-## 1.Component: User service
+## 1.Component: Score service
 _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 ---
 
@@ -10,8 +10,8 @@ _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 from 2025-07-31 to 2025-08-02
 ---
 ## 3. Testing Environment
-- **Environment**: Docker Compose setup including only the required dependencies: userdb, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana  
-- **Note**: Other services (e.g., discount_service, score_service) are not required for testing user_service independently
+- **Environment**: Docker Compose setup including only the required dependencies: user_service, scoredb, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana, Redis
+- **Note**: Other services (e.g., discount_service, analytics_service) are not required for testing score-service independently
 - **Config location**: See `docker-compose.yaml` in the root directory
 
 ---
@@ -23,6 +23,7 @@ from 2025-07-31 to 2025-08-02
 - Test cases are defined and documented
 - All required environment variables are set
 - Test plan is reviewed and confirmed
+- Database is running
 ---
 
 ## 5. Exit Testing Criteria
@@ -75,9 +76,11 @@ from 2025-07-31 to 2025-08-02
 | Elastic / Filebeat not receiving logs              | Medium     | High   | Check volume mounts and Filebeat status           |
 | Test data inconsistencies                          | Medium     | Medium | Use consistent test data setup scripts            |
 | Auth token expiration during long tests            | Low        | High   | Re-authenticate or extend test token lifetime     |
+| Redis cache unavailability                         | Medium     | High   | Verify Redis connection and implement fallback    |
 | PostgreSQL database connection issues              | Low        | High   | Check database connectivity and migration status  |
-| JWT token validation failures                      | Medium     | High   | Verify token generation and validation logic      |
-| Password hashing inconsistencies                   | Low        | Medium | Test bcrypt implementation and edge cases         |
+| User service dependency failure                    | Medium     | High   | Mock user service responses for isolated testing  |
+| Race conditions in concurrent roll requests        | High       | Medium | Test with multiple simultaneous requests          |
+| Score generation randomness affecting tests        | High       | Low    | Use fixed seed for deterministic testing          |
 ---
 ## 11. Test Coverage Policy
 

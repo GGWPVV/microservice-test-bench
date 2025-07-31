@@ -11,7 +11,7 @@ from 2025-07-31 to 2025-08-02
 ---
 ## 3. Testing Environment
 - **Environment**: Docker Compose setup including only the required dependencies: user_service, score-service, PostgreSQL, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana,Redis.
-- **Note**: Other services (e.g., analitycs_service) are not required for testing user_service independently
+- **Note**: Other services (e.g., analitycs_service) are not required for testing discount_service independently
 - **Config location**: See `docker-compose.yaml` in the root directory
 
 ---
@@ -39,6 +39,7 @@ from 2025-07-31 to 2025-08-02
 - **Integration Testing**: Simulated multi-service calls and Kafka event validation
 - **Smoke Testing**: Key endpoints health and behavior
 - **Regression Testing**: Re-execution of affected test cases post changes
+- **Ad-hoc Testing**: Unscripted exploratory testing to discover edge cases and unexpected behaviors
 ---
 
 ## 7. Test Cases
@@ -58,11 +59,12 @@ from 2025-07-31 to 2025-08-02
 - **Unit Testing**: 2 Hours
 - **API Testing**: 2 Hours
 - **Integration Testing**: 1 Hours
-- **Exploratory Testing**: 1 Hours 
+- **Exploratory Testing**: 1 Hours
+- **Ad-hoc Testing**: 1 Hour
 - **Smoke Testing**: 30 min
 - **Regression Testing**: 1 Hours
 
-- **Total Estimated Time**: 7.5 Hours
+- **Total Estimated Time**: 8.5 Hours
 
 ---
 ## 10. Risks and Mitigations
@@ -75,6 +77,7 @@ from 2025-07-31 to 2025-08-02
 | Redis cache malfunction                           | Low        | Medium | Verify Redis connectivity and cache operations    |
 | Database connection issues                        | Low        | High   | Monitor PostgreSQL health and connection pools    |
 | Environment setup failures                        | Medium     | High   | Provide detailed setup documentation and scripts  |
+| Auth token expiration during long tests            | Low        |High    |Re-authenticate or extend test token lifetime     |
 ---
 ## 11. Test Coverage Policy
 
@@ -83,6 +86,6 @@ from 2025-07-31 to 2025-08-02
 - Coverage is tracked via traceability matrix
 ---
 ## 12.References to test docs
-- [Test Strategy](../docs/test_stategy.md)
+- [Test Strategy](../docs/test_strategy.md)
 - [Requirements Specification](../docs/requirements.md)
 ---

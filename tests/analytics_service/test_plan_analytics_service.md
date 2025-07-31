@@ -2,7 +2,7 @@
 ---
 
 
-## 1.Component: User service
+## 1.Component: Analytics service
 _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 ---
 
@@ -10,16 +10,18 @@ _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 from 2025-07-31 to 2025-08-02
 ---
 ## 3. Testing Environment
-- **Environment**: Docker Compose setup including only the required dependencies: userdb, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana  
-- **Note**: Other services (e.g., discount_service, score_service) are not required for testing user_service independently
+- **Environment**: Docker Compose setup including only the required dependencies: MongoDB, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana
+- **Note**: Analytics service consumes events from other services, so user_service, score_service, discount_service should be running for integration tests
 - **Config location**: See `docker-compose.yaml` in the root directory
 
 ---
 ## 4. Entry Testing Criteria
 - All services from **Environment** are up and running
-- User service is built and deployed
+- Analytics service is built and deployed
+- MongoDB is accessible and configured
+- Kafka topics are created and accessible
 - All dependencies are installed
-- Test data is prepared 
+- Test data is prepared
 - Test cases are defined and documented
 - All required environment variables are set
 - Test plan is reviewed and confirmed
@@ -45,7 +47,7 @@ from 2025-07-31 to 2025-08-02
 ## 7. Test Cases
 - Test cases will be documented with unique IDs (TC-001, TC-002, etc.)
 - Each test case will reference specific requirements (REQ-xxx)
-- Links to detailed test cases: [User Service Test Cases](./test_cases_user_service.md)
+- Links to detailed test cases: [Analytics Service Test Cases](./test_cases_analytics_service.md)
 
 
 ---
@@ -56,28 +58,29 @@ from 2025-07-31 to 2025-08-02
 
 ---
 ## 9. Timeline or Estimation
-- **Unit Testing**: 4 Hours
-- **API Testing**: 4 Hours
-- **Integration Testing**: 3 Hours
-- **Exploratory Testing**: 2 Hours
-- **Ad-hoc Testing**: 1.5 Hours
+- **Unit Testing**: 2 Hours
+- **Kafka Consumer Testing**: 3 Hours
+- **MongoDB Integration Testing**: 2 Hours
+- **Event Processing Testing**: 3 Hours
+- **Exploratory Testing**: 1.5 Hours
+- **Ad-hoc Testing**: 1 Hour
 - **Smoke Testing**: 30 min
-- **Regression Testing**: 2 Hours
+- **Regression Testing**: 1.5 Hours
 
-- **Total Estimated Time**: 17 Hours
+- **Total Estimated Time**: 14.5 Hours
 
 ---
 ## 10. Risks and Mitigations
 | Risk Description                                   | Likelihood | Impact | Mitigation Strategy                              |
 |---------------------------------------------------|------------|--------|--------------------------------------------------|
-| Kafka topic delays or consumer failure             | Medium     | High   | Ensure Kafka topics are pre-created and monitored |
-| Service downtime during tests                      | Low        | High   | Use Docker Compose to manage service lifecycle    |
-| Elastic / Filebeat not receiving logs              | Medium     | High   | Check volume mounts and Filebeat status           |
-| Test data inconsistencies                          | Medium     | Medium | Use consistent test data setup scripts            |
-| Auth token expiration during long tests            | Low        | High   | Re-authenticate or extend test token lifetime     |
-| PostgreSQL database connection issues              | Low        | High   | Check database connectivity and migration status  |
-| JWT token validation failures                      | Medium     | High   | Verify token generation and validation logic      |
-| Password hashing inconsistencies                   | Low        | Medium | Test bcrypt implementation and edge cases         |
+| Kafka consumer lag or failure                      | High       | High   | Monitor consumer group lag and implement retries |
+| MongoDB connection issues                          | Medium     | High   | Verify MongoDB connectivity and authentication   |
+| Event message format changes                       | Medium     | High   | Implement schema validation and versioning       |
+| Service downtime during tests                      | Low        | High   | Use Docker Compose to manage service lifecycle   |
+| Kafka topic unavailability                        | Medium     | High   | Ensure topics are pre-created and accessible     |
+| Event processing delays                            | Medium     | Medium | Monitor processing time and implement timeouts   |
+| MongoDB storage capacity issues                    | Low        | Medium | Monitor disk usage and implement data retention  |
+| Duplicate event processing                         | Medium     | Medium | Implement idempotency checks and deduplication   |
 ---
 ## 11. Test Coverage Policy
 

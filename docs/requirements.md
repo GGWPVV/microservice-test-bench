@@ -1,7 +1,6 @@
 # Software Requirements Specification (SRS)
 ## Project: Microservice Discount System
-_Version: 1.0 | Last updated: 2025-07-29 | Author: Development Team_
-
+_Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 ---
 
 ## 1. Overview
