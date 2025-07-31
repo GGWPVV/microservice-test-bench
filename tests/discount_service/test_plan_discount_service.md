@@ -2,7 +2,7 @@
 ---
 
 
-## 1.Component: User service
+## 1.Component: Discount service
 _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 ---
 
@@ -10,8 +10,8 @@ _Version: 1.0 | Last updated: 2025-07-31 | Author: Georgii Vladimirov
 from 2025-07-31 to 2025-08-02
 ---
 ## 3. Testing Environment
-- **Environment**: Docker Compose setup including only the required dependencies: PostgreSQL, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana  
-- **Note**: Other services (e.g., discount_service, score_service) are not required for testing user_service independently
+- **Environment**: Docker Compose setup including only the required dependencies: user_service, score-service, PostgreSQL, Kafka, Kafdrop, Elasticsearch, Filebeat, Kibana,Redis.
+- **Note**: Other services (e.g., analitycs_service) are not required for testing user_service independently
 - **Config location**: See `docker-compose.yaml` in the root directory
 
 ---
@@ -44,7 +44,7 @@ from 2025-07-31 to 2025-08-02
 ## 7. Test Cases
 - Test cases will be documented with unique IDs (TC-001, TC-002, etc.)
 - Each test case will reference specific requirements (REQ-xxx)
-- Links to detailed test cases: [User Service Test Cases](./test_cases_user_service.md)
+- Links to detailed test cases: [User Service Test Cases](./test_cases_discount_service.md)
 
 
 ---
@@ -55,24 +55,26 @@ from 2025-07-31 to 2025-08-02
 
 ---
 ## 9. Timeline or Estimation
-- **Unit Testing**: 4 Hours
-- **API Testing**: 4 Hours
-- **Integration Testing**: 3 Hours
-- **Exploratory Testing**: 2 Hours 
+- **Unit Testing**: 2 Hours
+- **API Testing**: 2 Hours
+- **Integration Testing**: 1 Hours
+- **Exploratory Testing**: 1 Hours 
 - **Smoke Testing**: 30 min
-- **Regression Testing**: 2 Hours
+- **Regression Testing**: 1 Hours
 
-- **Total Estimated Time**: 15.5 Hours
+- **Total Estimated Time**: 7.5 Hours
 
 ---
 ## 10. Risks and Mitigations
 | Risk Description                                   | Likelihood | Impact | Mitigation Strategy                              |
-
-| Kafka topic delays or consumer failure             | Medium     |High    |Ensure Kafka topics are pre-created and monitored |
-| Service downtime during tests                      | Low        |High    |Use Docker Compose to manage service lifecycle    |
-| Elastic / Filebeat not receiving logs              | Medium     |High    |Check volume mounts and Filebeat status           |
-| Test data inconsistencies                          | Medium     |Medium  |Use consistent test data setup scripts            |
-| Auth token expiration during long tests            | Low        |High    |Re-authenticate or extend test token lifetime     |
+|---------------------------------------------------|------------|--------|--------------------------------------------------|
+| Kafka topic delays or consumer failure             | Medium     | High   | Ensure Kafka topics are pre-created and monitored |
+| Service downtime during tests                      | Low        | High   | Use Docker Compose to manage service lifecycle    |
+| Elasticsearch/Filebeat not receiving logs         | Medium     | Medium | Check volume mounts and Filebeat configuration    |
+| Test data inconsistencies                          | Medium     | Medium | Use consistent test data setup scripts            |
+| Redis cache malfunction                           | Low        | Medium | Verify Redis connectivity and cache operations    |
+| Database connection issues                        | Low        | High   | Monitor PostgreSQL health and connection pools    |
+| Environment setup failures                        | Medium     | High   | Provide detailed setup documentation and scripts  |
 ---
 ## 11. Test Coverage Policy
 
