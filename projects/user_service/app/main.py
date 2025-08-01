@@ -7,9 +7,7 @@ from typing import List, Annotated
 from uuid import UUID
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-import sys
-sys.path.insert(0, '/shared')
-from logger_config import setup_logger
+from shared.logger_config import setup_logger
 
 from database import SessionLocal, engine, Base
 import models
@@ -19,7 +17,7 @@ from schemas import (
     UserListOut, CurrentUserResponse, ErrorResponse, 
     ValidationErrorResponse, InternalErrorResponse, HealthResponse
 )
-from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
+from shared.kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 
 # Base.metadata.create_all(bind=engine)  # Используем миграции вместо этого
 
@@ -74,6 +72,24 @@ def get_db():
                     "example": {
                         "message": "User created successfully",
                         "user_name": "john_doe"
+                    }
+                }
+            }
+        },
+        409: {
+            "description": "Conflict - User already exists",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "duplicate_username": {
+                            "summary": "Username already exists",
+                            "value": {"detail": "Username already exists"}
+                        },
+                        "duplicate_email": {
+                            "summary": "Email already exists", 
+                            "value": {"detail": "Email already exists"}
+                        }
                     }
                 }
             }
@@ -145,6 +161,35 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
         })
         return {"message": "User created successfully", "user_name": new_user.username}
     except Exception as e:
+        db.rollback()
+        error_str = str(e).lower()
+        
+        # Handle unique constraint violations
+        if "unique constraint" in error_str or "duplicate key" in error_str:
+            if "username" in error_str:
+                logger.warning({
+                    "event": "duplicate_username",
+                    "username": user.username,
+                    "message": "Username already exists"
+                })
+                raise HTTPException(status_code=409, detail="Username already exists")
+            elif "email" in error_str:
+                logger.warning({
+                    "event": "duplicate_email",
+                    "email": user.email,
+                    "message": "Email already exists"
+                })
+                raise HTTPException(status_code=409, detail="Email already exists")
+            else:
+                logger.warning({
+                    "event": "duplicate_user_data",
+                    "username": user.username,
+                    "email": user.email,
+                    "message": "User with this data already exists"
+                })
+                raise HTTPException(status_code=409, detail="User already exists")
+        
+        # Handle other database errors
         logger.error({
             "event": "user_create_error",
             "username": user.username,

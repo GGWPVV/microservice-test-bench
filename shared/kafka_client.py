@@ -3,7 +3,7 @@ import json
 import asyncio
 from datetime import datetime
 from aiokafka import AIOKafkaProducer
-from logger_config import setup_logger
+from .logger_config import setup_logger
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 _producer = None
@@ -30,13 +30,13 @@ async def start_kafka_producer(retries: int = 10, delay: int = 5):
                     "message": "Kafka not ready yet"
                 })
                 await asyncio.sleep(delay)
-        logger.error({"event": "kafka_fail", "message": "Kafka producer could not be started after retries"})
-        raise RuntimeError("Kafka producer could not be started after retries")
+        logger.error({"event": "kafka_fail", "message": "Kafka producer could not be started after retries, continuing without Kafka"})
+        _producer = None
 
 async def publish_event(topic: str, data: dict):
     if _producer is None:
-        logger.error({"event": "publish_event", "message": "Kafka producer not initialized"})
-        raise RuntimeError("Kafka producer not initialized")
+        logger.warning({"event": "publish_event", "message": "Kafka producer not initialized, skipping event"})
+        return None
     try:
         data["timestamp"] = str(datetime.utcnow())
         result = await _producer.send_and_wait(topic, data)

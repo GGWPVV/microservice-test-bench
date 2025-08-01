@@ -1,8 +1,6 @@
 from jose import jwt
 from datetime import datetime, timedelta, timezone
-import sys
-sys.path.insert(0, '/shared')
-from logger_config import setup_logger
+from shared.logger_config import setup_logger
 
 SECRET_KEY = "mysecret"
 ALGORITHM = "HS256"

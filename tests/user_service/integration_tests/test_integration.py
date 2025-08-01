@@ -146,7 +146,7 @@ class TestUserServiceIntegration:
         duplicate_user["username"] = "different_username"
         response = requests.post(f"{BASE_URL}/users", json=duplicate_user)
         # Should fail due to unique email constraint
-        assert response.status_code == 500
+        assert response.status_code == 409
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

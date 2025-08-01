@@ -11,6 +11,7 @@ services:
     container_name: user_service
     environment:
       - DB_URL=postgresql://userpostgres:userpassword@userdb:5432/userdb
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - userdb
       - kafka
@@ -26,8 +27,10 @@ services:
     container_name: discount_service
     environment:
       - REDIS_HOST=redis
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - redis
+      - kafka
     networks:
       - app-network
 
@@ -66,6 +69,7 @@ services:
     environment:
       - REDIS_HOST=redis
       - DB_URL=postgresql://scorepostgres:scorepassword@scoredb:5432/scoredb
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - scoredb
       - redis
@@ -84,18 +88,27 @@ services:
 
   kafka:
     image: bitnami/kafka:latest
+    hostname: kafka
     ports:
       - "9092:9092"
+      - "9094:9094"
+      - "9095:9095"
     environment:
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9095
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9095
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - app-network
   
@@ -132,7 +145,7 @@ services:
     ports:
       - "9000:9000"
     environment:
-      KAFKA_BROKER_CONNECT: "kafka:9092"
+      KAFKA_BROKERCONNECT: "kafka:9092"
     depends_on:
       - kafka
     networks:

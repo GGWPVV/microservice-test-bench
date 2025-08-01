@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 
 # Copy shared utilities
-COPY shared /shared
+COPY shared /app/shared
 COPY projects/user_service/app /app
 COPY projects/user_service/alembic.ini /app/alembic.ini
 COPY projects/user_service/alembic /app/alembic
