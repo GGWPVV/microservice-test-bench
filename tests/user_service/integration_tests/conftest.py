@@ -108,19 +108,33 @@ def multiple_users_data() -> list[Dict[str, Any]]:
     ]
 
 @pytest.fixture
-async def kafka_consumer():
+def kafka_consumer():
     """Creates Kafka consumer for tests"""
     from aiokafka import AIOKafkaConsumer
     import json
     
-    consumer = AIOKafkaConsumer(
-        "user.registered",
-        "user.logged_in", 
-        bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9094"),
-        group_id=f"test_group_{int(time.time() * 1000000)}",
-        auto_offset_reset="earliest",
-        value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-    )
-    await consumer.start()
-    yield consumer
-    await consumer.stop()
+    async def _create_consumer():
+        # Создаем уникальную группу для каждого теста
+        group_id = f"test_group_{int(time.time() * 1000000)}"
+        
+        consumer = AIOKafkaConsumer(
+            "user.registered",
+            "user.logged_in", 
+            bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9094"),
+            group_id=group_id,
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+            consumer_timeout_ms=5000,
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')) if m else None
+        )
+        
+        try:
+            await consumer.start()
+            # Ждем немного чтобы consumer подключился
+            await asyncio.sleep(0.5)
+            return consumer
+        except Exception as e:
+            await consumer.stop()
+            raise e
+    
+    return _create_consumer()
