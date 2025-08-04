@@ -12,7 +12,7 @@ COPY projects/discount_service/app/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy app
-COPY shared /shared
+COPY shared /app/shared
 COPY projects/discount_service/app /app
 
 EXPOSE 8000

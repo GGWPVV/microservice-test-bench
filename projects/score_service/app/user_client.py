@@ -1,8 +1,6 @@
 import requests
 import os
-import sys
-sys.path.insert(0, '/shared')
-from logger_config import setup_logger
+from shared.logger_config import setup_logger
 
 logger = setup_logger("user_client")
 

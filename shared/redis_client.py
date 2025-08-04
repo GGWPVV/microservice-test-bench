@@ -1,6 +1,6 @@
 import os
 import redis.asyncio as redis
-from .logger_config import setup_logger
+from shared.logger_config import setup_logger
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))

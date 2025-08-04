@@ -3,7 +3,7 @@ import json
 import asyncio
 from datetime import datetime
 from aiokafka import AIOKafkaProducer
-from .logger_config import setup_logger
+from shared.logger_config import setup_logger
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 _producer = None

@@ -4,11 +4,9 @@ import random
 from datetime import datetime
 from database import get_db
 from models import UserScore
-import sys
-sys.path.insert(0, '/shared')
-from redis_client import get_redis, RedisCache
-from kafka_client import publish_event
-from logger_config import setup_logger
+from shared.redis_client import get_redis, RedisCache
+from shared.kafka_client import publish_event
+from shared.logger_config import setup_logger
 import models, database, json
 from user_client import get_user
 from schemas import (
@@ -24,8 +22,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
-# models.Base.metadata.create_all(bind=database.engine)  # Используем миграции вместо этого
-from kafka_client import start_kafka_producer, stop_kafka_producer
+# models.Base.metadata.create_all(bind=database.engine)  # Use migrations instead
+from shared.kafka_client import start_kafka_producer, stop_kafka_producer
 logger = setup_logger("score_service")
 http_logger = setup_logger("score_service")
 

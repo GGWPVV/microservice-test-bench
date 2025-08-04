@@ -4,11 +4,9 @@ from jose import JWTError, jwt
 import requests, os 
 from typing import Optional
 from datetime import datetime
-import sys
-sys.path.insert(0, '/shared')
-from redis_client import get_redis, RedisCache
-from kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
-from logger_config import setup_logger
+from shared.redis_client import get_redis, RedisCache
+from shared.kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
+from shared.logger_config import setup_logger
 from schemas import (
     DiscountResponse, ErrorResponse, InvalidUserDataError, 
     InternalErrorResponse, HealthResponse
