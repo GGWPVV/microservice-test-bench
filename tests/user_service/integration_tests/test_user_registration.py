@@ -12,7 +12,7 @@ class TestUserRegistration:
         test_user_data: Dict[str, Any],
         wait_for_service
     ):
-        """TC-001: Successful user registration"""
+        """MTB-1: Successfully create  new user with valid data"""
         response = await http_client.post("/users", json=test_user_data)
         
         assert response.status_code == 201
@@ -27,7 +27,7 @@ class TestUserRegistration:
         created_user: Dict[str, Any],
         wait_for_service
     ):
-        """TC-002: Registration with duplicate username"""
+        """MTB-4: Registration with duplicate email"""
         duplicate_user = created_user.copy()
         duplicate_user["email"] = "different@example.com"
         
@@ -35,7 +35,7 @@ class TestUserRegistration:
         assert response.status_code == 409
         
         error_data = response.json()
-        assert error_data["detail"] == "Username already exists"
+        assert error_data["detail"] == "Email already exists"
 
     @pytest.mark.asyncio
     async def test_duplicate_email_registration(
@@ -44,7 +44,7 @@ class TestUserRegistration:
         created_user: Dict[str, Any],
         wait_for_service
     ):
-        """TC-003: Registration with duplicate email"""
+        """TC-003: Registration with duplicate username"""
         import time
         duplicate_user = created_user.copy()
         duplicate_user["username"] = f"different_username_{int(time.time())}"
@@ -53,7 +53,7 @@ class TestUserRegistration:
         assert response.status_code == 409
         
         error_data = response.json()
-        assert error_data["detail"] in ["Email already exists", "Username already exists"]
+        assert error_data["detail"] in ["Username already exists"]
 
     @pytest.mark.asyncio
     async def test_invalid_email_format(

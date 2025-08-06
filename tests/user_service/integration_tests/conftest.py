@@ -47,7 +47,7 @@ def test_user_data() -> Dict[str, Any]:
     timestamp = int(time.time())
     random_id = random.randint(1000, 9999)
     return {
-        "username": f"testuser_{timestamp}_{random_id}",
+        "username": f"user_{timestamp}_{random_id}",
         "email": f"test_{timestamp}_{random_id}@example.com",
         "password": "testpass123",
         "age": 25,
