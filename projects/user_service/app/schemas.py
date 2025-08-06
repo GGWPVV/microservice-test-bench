@@ -23,6 +23,7 @@ class TokenResponse(BaseModel):
 
 class UserListOut(BaseModel):
     username: str = Field(..., example="john_doe")
+    email: EmailStr = Field(..., example="john@example.com")
     age: int = Field(..., example=25)
     city: str = Field(..., example="New York")
 
@@ -32,6 +33,7 @@ class UserListOut(BaseModel):
 class CurrentUserResponse(BaseModel):
     id: str = Field(..., example="fdf3b126-8bec-4ce3-9192-c8a944dee98b")
     username: str = Field(..., example="john_doe")
+    email: EmailStr = Field(..., example="john@example.com")
     age: int = Field(..., example=25)
 
 class ValidationErrorDetail(BaseModel):

@@ -53,7 +53,6 @@ class TestUserRegistration:
         assert response.status_code == 409
         
         error_data = response.json()
-        # В зависимости от порядка проверки constraints может быть любая из ошибок
         assert error_data["detail"] in ["Email already exists", "Username already exists"]
 
     @pytest.mark.asyncio
