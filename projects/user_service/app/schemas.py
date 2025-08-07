@@ -7,7 +7,7 @@ class UserCreate(BaseModel):
     email: EmailStr = Field(..., description="Valid email address", example="john@example.com")
     password: str = Field(..., min_length=6,max_length=50, description="Password must be 6-50 characters", example="password123")
     age: int = Field(..., ge=13, le=120, description="Age must be between 13 and 120", example=25)
-    city: str = Field(..., min_length=2, max_length=50, description="City name", example="New York")
+    city: str = Field(..., min_length=1, max_length=100, description="City name", example="New York")
 
 class UserCreateResponse(BaseModel):
     message: str = Field(..., example="User created successfully")
