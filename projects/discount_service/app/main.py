@@ -74,7 +74,7 @@ async def is_user_in_top(username: str) -> bool:
         logger.error({"event": "leaderboard_request_error", "error": str(e)})
     return False
 
-@app.post("/discount",
+@app.get("/discount",
     response_model=DiscountResponse,
     tags=["Discount"],
     summary="Calculate discount",
