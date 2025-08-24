@@ -25,7 +25,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login",
 scopes={"read:discount": "Read access to discount info"})
 logger = setup_logger("discount_service")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY", "mysecret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 
