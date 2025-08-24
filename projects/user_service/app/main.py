@@ -377,8 +377,7 @@ def get_user(user_id: UUID, db: Session = Depends(get_db)):
         "city": user.city
     }
 
-SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
+from auth import SECRET_KEY, ALGORITHM
 
 def decode_token(token: str):
     try:
@@ -386,21 +385,8 @@ def decode_token(token: str):
         return payload
     except JWTError:
         return None
-    
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
-
-def create_jwt(user_id: str):
-    payload = {
-        "sub": str(user_id),
-        "exp": datetime.utcnow() + timedelta(hours=2)
-    }
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-    return token
 
 @app.get("/user/me",
     response_model=CurrentUserResponse,
