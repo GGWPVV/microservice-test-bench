@@ -4,7 +4,7 @@ from shared.logger_config import setup_logger
 
 SECRET_KEY = "mysecret"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 logger = setup_logger("auth")
 
