@@ -108,8 +108,6 @@ async def draw_score(
 ):
     try:
         logger.info({"event": "roll_request", "message": "Roll endpoint called", "Authorization": Authorization})
-        redis = await get_redis()
-        await redis.delete("leaderboard_top10")
 
         user_data = get_user(Authorization)
         if not user_data:
@@ -120,27 +118,21 @@ async def draw_score(
         username = user_data["username"]
 
         # 2. Check if user has already rolled
-        if await RedisCache.exists(f"already_rolled:{user_id}"):
+        existing = db.query(models.UserScore).filter_by(user_id=user_id).first()
+        if existing:
             logger.info({"event": "already_rolled", "user_id": user_id, "username": username})
             raise HTTPException(status_code=400, detail="You have already rolled.")
 
         # 3. Generate and save score
         score_value = random.randint(1, 1_000_000)
-        existing = db.query(models.UserScore).filter_by(user_id=user_id).first()
-        if existing:
-            logger.info({"event": "score_update", "user_id": user_id, "old_score": existing.score, "new_score": score_value})
-            existing.score = score_value
-            existing.created_at = datetime.utcnow()
-            new_score = existing
-        else: 
-            logger.info({"event": "score_create", "user_id": user_id, "score": score_value})
-            new_score = models.UserScore(
-                user_id=user_id,
-                username=username,
-                score=score_value,
-                created_at=datetime.utcnow()
-            )
-            db.add(new_score)
+        logger.info({"event": "score_create", "user_id": user_id, "score": score_value})
+        new_score = models.UserScore(
+            user_id=user_id,
+            username=username,
+            score=score_value,
+            created_at=datetime.utcnow()
+        )
+        db.add(new_score)
         db.commit()
 
         await publish_event("score.rolled", {
@@ -149,8 +141,12 @@ async def draw_score(
             "score": score_value
         })
 
-        # 4. Flag user as having rolled
-        await RedisCache.set(f"already_rolled:{user_id}", "1", ttl=60*60*24*365)
+        # 4. Check if user made it to top 10 and clear cache if needed
+        top_players = db.query(UserScore).order_by(UserScore.score.desc()).limit(10).all()
+        if any(player.user_id == user_id for player in top_players):
+            redis = await get_redis()
+            await redis.delete("leaderboard_top10")
+            logger.info({"event": "leaderboard_cache_cleared", "reason": "user_in_top10", "user_id": user_id})
 
         logger.info({"event": "roll_success", "user_id": user_id, "username": username, "score": score_value})
         return {
@@ -234,7 +230,7 @@ async def get_leaderboard(
             for entry in top_players
         ]
 
-        await redis.set("leaderboard_top10", json.dumps(result), ex=60)  # TTL 60s
+        await redis.set("leaderboard_top10", json.dumps(result), ex=3600)  # TTL 1 hour
         logger.info({"event": "leaderboard_cache_set", "count": len(result)})
         return result
     except Exception as e:
