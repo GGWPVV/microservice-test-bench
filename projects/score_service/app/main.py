@@ -284,6 +284,60 @@ async def clear_leaderboard_cache(redis = Depends(get_redis)):
         }, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.post("/test/roll",
+    response_model=RollResponse,
+    tags=["Testing"],
+    summary="Test roll with custom score",
+    description="QA endpoint to test roll with specific score value",
+    include_in_schema=False
+)
+async def test_roll(
+    score: int,
+    Authorization: str = Header(...), 
+    db: Session = Depends(get_db)
+):
+    try:
+        user_data = get_user(Authorization)
+        if not user_data:
+            raise HTTPException(status_code=403, detail="Invalid token")
+
+        user_id = user_data["id"]
+        username = user_data["username"]
+
+        existing = db.query(models.UserScore).filter_by(user_id=user_id).first()
+        if existing:
+            existing.score = score
+            existing.created_at = datetime.utcnow()
+            new_score = existing
+        else:
+            new_score = models.UserScore(
+                user_id=user_id,
+                username=username,
+                score=score,
+                created_at=datetime.utcnow()
+            )
+            db.add(new_score)
+        
+        db.commit()
+
+        top_players = db.query(UserScore).order_by(UserScore.score.desc()).limit(10).all()
+        cache_cleared = False
+        if any(player.user_id == user_id for player in top_players):
+            redis = await get_redis()
+            await redis.delete("leaderboard_top10")
+            cache_cleared = True
+            logger.info({"event": "test_cache_cleared", "user_id": user_id, "score": score})
+
+        return {
+            "username": username,
+            "score": score,
+            "timestamp": new_score.created_at
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @app.get("/health",
     response_model=HealthResponse,
     tags=["Health"],
