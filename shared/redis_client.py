@@ -4,15 +4,15 @@ from shared.logger_config import setup_logger
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
 logger = setup_logger("redis_client")
 
 async def get_redis():
     return redis_client
 
 class RedisCache:
-    """Базовый класс для работы с Redis кэшем"""
     
     @staticmethod
     async def get(key: str):
