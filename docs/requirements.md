@@ -44,8 +44,6 @@ The system consists of four microservices:
 
 **Business Rules**:
 - BR-001: Username must be unique across the system
-- BR-002: Email must be unique across the system
-- BR-003: Registration triggers `user.registered` Kafka event
 
 **Success Response**: HTTP 201, `{"message": "User created successfully", "user_name": "john_doe"}`
 **Error Responses**: 
@@ -60,10 +58,9 @@ The system consists of four microservices:
 - Password: String (plain text)
 
 **Business Rules**:
-- BR-005: JWT token expires after 2 hours
-- BR-006: Token contains user ID and expiration timestamp
-- BR-007: Failed attempts are logged for security monitoring
-- BR-008: Successful login triggers `user.logged_in` Kafka event
+- BR-002: JWT token expires after 15 minutes
+- BR-003: Token contains user ID and expiration timestamp
+- BR-004: Failed attempts are logged for security monitoring
 
 **Success Response**: HTTP 200, `{"access_token": "jwt_token", "token_type": "bearer"}`
 **Error Responses**:
@@ -76,8 +73,7 @@ The system consists of four microservices:
 **Input Data**: Valid JWT token in Authorization header
 **Output Data**: User ID, username, age
 **Business Rules**:
-- BR-009: Only token owner can access their profile
-- BR-010: Expired tokens are rejected
+- BR-005: Only token owner can access their profile
 
 ### 3.2 Score Management Service (REQ-002)
 
@@ -88,10 +84,9 @@ The system consists of four microservices:
 **Output Data**: Username, score value, timestamp
 
 **Business Rules**:
-- BR-011: Score range is 1 to 1,000,000 (inclusive)
-- BR-012: Each user can roll exactly once (enforced via Redis)
-- BR-013: Score generation triggers `score.rolled` Kafka event
-- BR-014: Leaderboard cache is invalidated after new score
+- BR-006: Score range is 1 to 1,000,000 (inclusive)
+- BR-007: Each user can roll exactly once (enforced via Redis)
+- BR-008: Leaderboard cache is invalidated after new top 10 user
 
 **Success Response**: HTTP 200, `{"username": "john", "score": 750000, "timestamp": "2025-01-01T12:00:00Z"}`
 **Error Responses**:
@@ -106,9 +101,9 @@ The system consists of four microservices:
 **Output Data**: Array of username, score, timestamp (top 10)
 
 **Business Rules**:
-- BR-015: Results sorted by score descending
-- BR-016: Results cached in Redis for 60 seconds
-- BR-017: Cache automatically refreshed on expiration
+- BR-009: Results sorted by score descending
+- BR-010: Results cached in Redis for 60 seconds
+- BR-011: Cache automatically refreshed on expiration
 
 ### 3.3 Discount Calculation Service (REQ-003)
 
@@ -119,11 +114,12 @@ The system consists of four microservices:
 **Output Data**: Username, discount percentage (0.0-0.2)
 
 **Business Rules**:
-- BR-018: Age ≥ 40 years grants 10% discount
-- BR-019: Top 10 leaderboard position grants 10% discount  
-- BR-020: Discounts are cumulative (maximum 20%)
-- BR-021: Results cached in Redis for 1 hour
-- BR-022: Calculation triggers `discount.calculated` Kafka event
+- BR-012: Age ≥ 40 years grants 10% discount
+- BR-013: Top 10 leaderboard position grants 10% discount  
+- BR-014: Discounts are cumulative (maximum 20%)
+- BR-015: Age ≤ 40 years grants 0% discount
+- BR-016: Out of Top 10 leadearboard grants 0% discount
+- BR-017: Results cached in Redis for 1 hour
 
 **Success Response**: HTTP 200, `{"username": "john", "discount": 0.2}`
 **Error Responses**:
@@ -131,9 +127,28 @@ The system consists of four microservices:
 - HTTP 400: `{"detail": "Invalid user data"}`
 - HTTP 500: Internal server error
 
-### 3.4 Analytics Service (REQ-004)
+### 3.6 Integration / Event-driven Requirements (REQ-004)
 
-#### 3.4.1 Event Processing (REQ-004.1)
+#### 3.6.1 Kafka integration (REQ-004.1)
+**Description**: Each microservice MUST publish main events to Kafka to enable downstream services (e.g., analytics_service) to react asynchronously.
+
+**Integration Requirements**:
+- INT-001:  Registration triggers `user.registered` event in Kafka topic `user.registered` with payload: user_id, username, timestamp
+- INT-002: Successful login triggers `user.logged_in` event in Kafka topic `user.logged_in` with payload: user_id, timestamp
+- INT-003: Score generation triggers `score.rolled` event in Kafka topic `score.rolled` with payload: username, score, timestamp
+- INT-004: Discount calculation triggers `discount.calculated` event in Kafka topic `discount.calculated` with payload: username, discount, timestamp
+#### 3.6.2 Logging / ELK integration (REQ-004.2)
+**Description**: All services MUST send structured logs to Elasticsearch (via Filebeat/Logstash) for monitoring, analytics, and security auditing.
+
+**Integration Requirements**:
+- INT-005: User registration event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, timestamp
+- INT-006: User logs in event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, timestamp
+- INT-007: Score generation event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, score, timestamp
+- INT-008: Discount calculation event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, discount, timestamp
+
+### 3.4 Analytics Service (REQ-005)
+
+#### 3.4.1 Event Processing (REQ-005.1)
 **Description**: System shall consume and persist all business events
 
 **Input Data**: Kafka messages from topics:
@@ -143,28 +158,27 @@ The system consists of four microservices:
 - `discount.calculated`
 
 **Business Rules**:
-- BR-023: All events must be persisted to MongoDB
-- BR-024: Event schema includes event_type, timestamp, payload
-- BR-025: Failed processing attempts are retried with exponential backoff
-- BR-026: Events are processed in order within each topic partition
+- BR-018: All events must be persisted to MongoDB
+- BR-019: Event schema includes event_type, timestamp, payload
+- BR-020: Failed processing attempts are retried with exponential backoff
+- BR-021: Events are processed in order within each topic partition
 
 **Success Criteria**: Events stored in MongoDB with complete data
 **Error Handling**: Retry with exponential backoff, dead letter queue for failed events
 
-### 3.5 System Health Monitoring (REQ-005)
+### 3.5 System Health Monitoring (REQ-004)
 
-#### 3.5.1 Health Check Endpoints (REQ-005.1)
+#### 3.5.1 Health Check Endpoints (REQ-004.1)
 **Description**: All services shall expose health status for monitoring
 
 **Endpoint**: `GET /health` (public, no authentication required)
 **Output Data**: `{"status": "healthy", "service": "service_name", "timestamp": "2025-01-01T12:00:00Z"}`
 
 **Business Rules**:
-- BR-027: Health check must respond within 5 seconds
-- BR-028: Returns HTTP 200 when service is operational
-- BR-029: Returns HTTP 500 when service has critical issues
-- BR-030: Available for Kubernetes liveness/readiness probes
-
+- BR-022: Health check must respond within 5 seconds
+- BR-023: Returns HTTP 200 when service is operational
+- BR-024: Returns HTTP 500 when service has critical issues
+- BR-025: Available for Kubernetes liveness/readiness probes
 ---
 
 ## 4. Non-Functional Requirements
