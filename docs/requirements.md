@@ -85,7 +85,7 @@ The system consists of four microservices:
 
 **Business Rules**:
 - BR-006: Score range is 1 to 1,000,000 (inclusive)
-- BR-007: Each user can roll exactly once (enforced via Redis)
+- BR-007: Each user can roll exactly once 
 - BR-008: Leaderboard cache is invalidated after new top 10 user
 
 **Success Response**: HTTP 200, `{"username": "john", "score": 750000, "timestamp": "2025-01-01T12:00:00Z"}`
@@ -118,8 +118,10 @@ The system consists of four microservices:
 - BR-013: Top 10 leaderboard position grants 10% discount  
 - BR-014: Discounts are cumulative (maximum 20%)
 - BR-015: Age ≤ 40 years grants 0% discount
-- BR-016: Out of Top 10 leadearboard grants 0% discount
+- BR-016: Out of Top 10 leaderboard grants 0% discount
 - BR-017: Results cached in Redis for 1 hour
+- BR-018: Only authorized users can get a discount.
+- BR-019: Discount calculation with unavailable score-service
 
 **Success Response**: HTTP 200, `{"username": "john", "discount": 0.2}`
 **Error Responses**:
@@ -142,7 +144,7 @@ The system consists of four microservices:
 
 **Integration Requirements**:
 - INT-005: User registration event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, timestamp
-- INT-006: User logs in event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, timestamp
+- INT-006: User login event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, timestamp
 - INT-007: Score generation event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, score, timestamp
 - INT-008: Discount calculation event must be logged to Elasticsearch in JSON format with fields: event_type,user_id, username, discount, timestamp
 
@@ -158,27 +160,26 @@ The system consists of four microservices:
 - `discount.calculated`
 
 **Business Rules**:
-- BR-018: All events must be persisted to MongoDB
-- BR-019: Event schema includes event_type, timestamp, payload
-- BR-020: Failed processing attempts are retried with exponential backoff
-- BR-021: Events are processed in order within each topic partition
+- BR-020: All events must be persisted to MongoDB
+- BR-021: Event schema includes event_type, timestamp, payload
+- BR-022: Failed processing attempts are retried with exponential backoff 
 
 **Success Criteria**: Events stored in MongoDB with complete data
 **Error Handling**: Retry with exponential backoff, dead letter queue for failed events
 
-### 3.5 System Health Monitoring (REQ-004)
+### 3.5 System Health Monitoring (REQ-006)
 
-#### 3.5.1 Health Check Endpoints (REQ-004.1)
+#### 3.5.1 Health Check Endpoints (REQ-006.1)
 **Description**: All services shall expose health status for monitoring
 
 **Endpoint**: `GET /health` (public, no authentication required)
 **Output Data**: `{"status": "healthy", "service": "service_name", "timestamp": "2025-01-01T12:00:00Z"}`
 
 **Business Rules**:
-- BR-022: Health check must respond within 5 seconds
-- BR-023: Returns HTTP 200 when service is operational
-- BR-024: Returns HTTP 500 when service has critical issues
-- BR-025: Available for Kubernetes liveness/readiness probes
+- BR-023: Health check must respond within 5 seconds
+- BR-024: Returns HTTP 200 when service is operational
+- BR-025: Returns HTTP 500 when service has critical issues
+- BR-026: Available for Kubernetes liveness/readiness probes
 ---
 
 ## 4. Non-Functional Requirements
@@ -254,21 +255,21 @@ The system consists of four microservices:
 
 ## 7. Assumptions
 
-- A-001: Network connectivity between services is reliable
-- A-002: Database schemas are managed via migration scripts
-- A-003: Kafka topics are pre-created with appropriate partitioning
-- A-004: System operates in single data center (no geo-distribution)
-- A-005: User load is predictable and within defined limits
+- Network connectivity between services is reliable
+- Database schemas are managed via migration scripts
+- Kafka topics are pre-created with appropriate partitioning
+- System operates in single data center (no geo-distribution)
+- User load is predictable and within defined limits
 
 ---
 
 ## 8. Future Enhancements
 
-- FE-001: OAuth2 integration for third-party authentication
-- FE-002: API Gateway for centralized request routing
-- FE-003: gRPC for high-performance service communication
-- FE-004: Multi-roll capability with payment integration
-- FE-005: Real-time leaderboard updates via WebSocket
+- OAuth2 integration for third-party authentication
+- API Gateway for centralized request routing
+- gRPC for high-performance service communication
+- Multi-roll capability with payment integration
+- Real-time leaderboard updates via WebSocket
 
 ---
 
