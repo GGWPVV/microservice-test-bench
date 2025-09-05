@@ -1,7 +1,13 @@
 # Microservice Test Bench - Data Pipeline Experiments
 
-This project is a **microservices-based application** designed as a learning platform to practice **software testing**, **architecture design**, and the use of **modern development and integration tools**.  
-It demonstrates a realistic, production-like system with multiple services, each using its own database and integrated with common technologies used in enterprise environments.
+This project is a **microservices-based application** created as a **learning platform** to practice:
+
+- **Software testing** (manual & automated)
+- **Architecture design**
+- **Modern development and integration tools**
+
+It simulates a **production-like system** with multiple services, each using its own database and integrated with widely used enterprise technologies.
+
 All testing documentation is available in the [Documentation](#documentation) section.
 ---
 
@@ -85,6 +91,7 @@ See [docs/test_strategy.md](docs/test_strategy.md) for details.
 - [Test Strategy](docs/test_strategy.md)
 - [Test Documentation](tests)
 - [Requirements Traceability Matrix](https://www.notion.so/25e317ee517d806fb731c16fb6f0ac5d?v=25e317ee517d80f8a008000c4f15e1a6&source=copy_link)
+- [Tests examples from TMS Qase](./tests/Tests%20from%20Qase%20TMS/)
 ##  License
 
 This project is for educational and demonstration purposes.
