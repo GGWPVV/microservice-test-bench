@@ -21,6 +21,19 @@ This project implements a **gamified scoring system** demonstrating event-driven
 4. **Discount Calculation** → Based on age + leaderboard → Cached in Redis → Events to Kafka & ELK
 5. **Analytics** → Analytics Service consumes Kafka events → Stores in MongoDB
 
+## Future Features
+
+6. **Kubernetes deployment** → In progress  
+7. **Automation test coverage over 50%** → In progress  
+8. **GitLab CI/CD integration** → In progress  
+9. **New business features**:  
+   - Add roles (admin, user, manager)  
+   - Add extra spin for donation  
+   - Add WebSocket chat  
+   - Add **gRPC connections** for inter-service communication (planned for Score ↔ Discount ↔ Analytics services)
+   
+---
+
 **Key Technologies:** FastAPI, PostgreSQL, MongoDB, Redis, Kafka, ELK Stack, Docker
 
 
