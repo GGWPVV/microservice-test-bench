@@ -1,19 +1,18 @@
 # Microservice Test Bench - Data Pipeline Experiments
 
-This project is a **microservices-based application** created as a **learning platform** to practice:
+This project is a **microservices-based application** created as a **learning and demonstration platform** to showcase my skills in:
 
 - **Software testing** (manual & automated)
-- **Architecture design**
-- **Modern development and integration tools**
+- **Test documentation and traceability**
+- **Microservices architecture design**
+- **Modern development and integration tools** (Kafka, Redis, ELK, PostgreSQL, MongoDB, Docker, Kubernetes)
 
-It simulates a **production-like system** with multiple services, each using its own database and integrated with widely used enterprise technologies.
+It simulates a **production-like system** with multiple services, each using its own database and integrated with widely used enterprise technologies. This project demonstrates **best practices in testing, architecture, and automation**, providing a complete example of how to design, document, and validate a microservices ecosystem.
 
 All testing documentation is available in the [Documentation](#documentation) section.
 ---
 
 ## Project Overview
-
-This project implements a **gamified scoring system** demonstrating event-driven microservices architecture:
 
 1. **User Registration** → User Service saves to PostgreSQL → Events to Kafka & ELK
 2. **User Login** → JWT authentication → Events to Kafka & ELK  
