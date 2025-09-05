@@ -2,7 +2,7 @@
 
 This project is a **microservices-based application** designed as a learning platform to practice **software testing**, **architecture design**, and the use of **modern development and integration tools**.  
 It demonstrates a realistic, production-like system with multiple services, each using its own database and integrated with common technologies used in enterprise environments.
-
+All testing documentation is available in the [Documentation](#documentation) section.
 ---
 
 ## 🎯 Project Overview
@@ -84,6 +84,7 @@ See [docs/test_strategy.md](docs/test_strategy.md) for details.
 - [API Documentation](http://localhost:8000/docs) (when running)
 - [Test Strategy](docs/test_strategy.md)
 - [Test Documentation](tests)
+- [Requirements Traceability Matrix](https://www.notion.so/25e317ee517d806fb731c16fb6f0ac5d?v=25e317ee517d80f8a008000c4f15e1a6&source=copy_link)
 ##  License
 
 This project is for educational and demonstration purposes.
