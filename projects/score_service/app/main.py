@@ -9,6 +9,9 @@ from shared.kafka_client import publish_event
 from shared.logger_config import setup_logger
 import models, database, json
 from user_client import get_user
+
+# Import models before creating tables
+models.Base.metadata.create_all(bind=database.engine)
 from schemas import (
     RollResponse, LeaderboardEntry, ErrorResponse, 
     AlreadyRolledError, InternalErrorResponse, HealthResponse, CacheResponse
@@ -22,7 +25,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
-# models.Base.metadata.create_all(bind=database.engine)  # Use migrations instead
+
 from shared.kafka_client import start_kafka_producer, stop_kafka_producer
 logger = setup_logger("score_service")
 http_logger = setup_logger("score_service")

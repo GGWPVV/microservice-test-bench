@@ -17,6 +17,11 @@ services:
       - kafka
     networks:
       - app-network
+    command: >
+      sh -c "alembic stamp head &&
+             alembic revision --autogenerate -m 'Auto migration' || true &&
+             alembic upgrade head &&
+             uvicorn main:app --host 0.0.0.0 --port 8000"
 
   discount_service:
     build:

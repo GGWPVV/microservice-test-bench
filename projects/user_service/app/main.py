@@ -12,6 +12,9 @@ from shared.logger_config import setup_logger
 from database import SessionLocal, engine, Base
 import models
 from models import User
+
+# Import models before creating tables
+models.Base.metadata.create_all(bind=engine)
 from schemas import (
     UserCreate, UserCreateResponse, UserLogin, TokenResponse, 
     UserListOut, CurrentUserResponse, ErrorResponse, 
@@ -19,7 +22,7 @@ from schemas import (
 )
 from shared.kafka_client import publish_event, start_kafka_producer, stop_kafka_producer
 
-# Base.metadata.create_all(bind=engine)  # Use migrations instead
+
 
 app = FastAPI(
     title="User Service API",
