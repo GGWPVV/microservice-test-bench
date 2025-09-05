@@ -11,7 +11,7 @@ It simulates a **production-like system** with multiple services, each using its
 All testing documentation is available in the [Documentation](#documentation) section.
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
 This project implements a **gamified scoring system** demonstrating event-driven microservices architecture:
 
@@ -24,7 +24,7 @@ This project implements a **gamified scoring system** demonstrating event-driven
 **Key Technologies:** FastAPI, PostgreSQL, MongoDB, Redis, Kafka, ELK Stack, Docker
 
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
