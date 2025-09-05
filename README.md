@@ -30,8 +30,8 @@ This project implements a **gamified scoring system** demonstrating event-driven
    - Add roles (admin, user, manager)  
    - Add extra spin for donation  
    - Add WebSocket chat  
-   - Add **gRPC connections** for inter-service communication (planned for Score ↔ Discount ↔ Analytics services)
-   
+   - Add **gRPC connections** for inter-service communication (planned for Score ↔ Discount ↔ Analytics services) -> In progress
+
 ---
 
 **Key Technologies:** FastAPI, PostgreSQL, MongoDB, Redis, Kafka, ELK Stack, Docker
