@@ -1,3 +1,0 @@
-# dj_example base
-
-

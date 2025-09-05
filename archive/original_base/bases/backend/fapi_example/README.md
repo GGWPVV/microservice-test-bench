@@ -1,3 +1,0 @@
-# fapi_example base
-
-
