@@ -1,0 +1,64 @@
+{
+	"info": {
+		"_postman_id": "0a1fcfdf-252a-4175-8f6b-54cfea388e49",
+		"name": "Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44722778",
+		"_collection_link": "https://georgii-3715821.postman.co/workspace/Test~a296380b-e246-4e7a-a613-d9030fcc3ef1/collection/44722778-0a1fcfdf-252a-4175-8f6b-54cfea388e49?action=share&source=collection_link&creator=44722778"
+	},
+	"item": [
+		{
+			"name": "{{url}}/users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is correst\", function () {\r",
+							"    const expectedStatus = parseInt(pm.iterationData.get(\"expectedStatus\"));\r",
+							"    pm.response.to.have.status(expectedStatus);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"{{username}}\",\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\",\r\n  \"age\": {{age}},\r\n  \"city\": \"{{city}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/users",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "basic_url",
+			"value": "https://petstore.swagger.io/v2",
+			"type": "default"
+		},
+		{
+			"key": "pet_id",
+			"value": "9223372036854775745",
+			"type": "default"
+		}
+	]
+}
