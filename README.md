@@ -38,26 +38,7 @@ All testing documentation is available in the [Documentation](#documentation) se
 
 ## Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Service  │    │  Score Service  │    │Discount Service │
-│   (FastAPI)     │    │   (FastAPI)     │    │   (FastAPI)     │
-│   PostgreSQL    │    │   PostgreSQL    │    │     Redis       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │     Kafka       │
-                    │   (Events)      │
-                    └─────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │Analytics Service│
-                    │   (FastAPI)     │
-                    │    MongoDB      │
-                    └─────────────────┘
-```
+![Microservices architecture](./docs/images/architecture.png)
 
 ## Quick Start
 
